@@ -127,7 +127,7 @@ mvn javafx:run
 ## Development Roadmap (8 Strict Phases)
 
 - [x] **Phase 1: Project Foundation** — Maven configuration, package structure, database schema, deterministic seed data, CSS design system, JDBC connection verification window.
-- [ ] **Phase 2: Authentication** — User entity, UserDAO, salted SHA-256 password hashing, AuthService, Login & Registration JavaFX views, role-based navigation.
+- [x] **Phase 2: Authentication** — User entity, UserDAO, salted SHA-256 password hashing, AuthService, Login & Registration JavaFX views, role-based navigation.
 - [ ] **Phase 3: Admin Management** — Movie CRUD, Screen configuration, dynamic seat layout generation, Showtime scheduling with conflict/overlap detection.
 - [ ] **Phase 4: Customer Browsing & Seat Map** — Customer dashboard, search-as-you-type, multi-attribute filtering, interactive JavaFX seat map with price calculation.
 - [ ] **Phase 5: Seat Holds & ACID Booking Transaction** — 5-minute hold timer with Timeline countdown, simulated payment dialog, JDBC transaction with `SELECT ... FOR UPDATE`, ticket summary.
