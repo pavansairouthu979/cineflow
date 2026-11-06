@@ -89,16 +89,16 @@ class DBConnectionTest {
                 assertTrue(rs.getInt(1) >= 8, "Expected at least 8 movies");
             }
 
-            // Verify 2 Screens
+            // Verify Screens (at least 2 from seed)
             try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM screens")) {
                 assertTrue(rs.next());
-                assertEquals(2, rs.getInt(1), "Expected exactly 2 screens");
+                assertTrue(rs.getInt(1) >= 2, "Expected at least 2 screens");
             }
 
-            // Verify Seats generated (40 + 24 = 64)
+            // Verify Seats generated (at least 64 from seed)
             try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM seats")) {
                 assertTrue(rs.next());
-                assertEquals(64, rs.getInt(1), "Expected 64 generated seats");
+                assertTrue(rs.getInt(1) >= 64, "Expected at least 64 seats");
             }
 
             // Verify Showtimes

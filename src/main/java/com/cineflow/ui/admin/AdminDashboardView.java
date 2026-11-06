@@ -5,14 +5,12 @@ import com.cineflow.ui.common.NavigationManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 
 /**
- * Administrator Landing Dashboard view.
- * Displayed upon successful ADMIN authentication.
+ * Full Administrator Console integrating Movie, Screen, Showtime,
+ * Booking management, and Analytics Reports via TabPane.
  */
 public class AdminDashboardView {
 
@@ -30,24 +28,45 @@ public class AdminDashboardView {
         VBox topBox = createTopNav();
         root.setTop(topBox);
 
-        // Center Content
-        VBox centerContent = new VBox(24);
-        centerContent.setPadding(new Insets(30, 40, 30, 40));
-        centerContent.setAlignment(Pos.TOP_CENTER);
+        // Center TabPane hosting all administrative modules
+        TabPane tabPane = new TabPane();
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        VBox.setVgrow(tabPane, Priority.ALWAYS);
 
-        // Welcome Card
-        VBox welcomeCard = createWelcomeCard();
-        centerContent.getChildren().add(welcomeCard);
+        // Tab 1: Overview
+        Tab overviewTab = new Tab("Dashboard Overview", createOverviewContent(tabPane));
 
-        // Administrative Modules Preview Cards (Upcoming in Phase 3 & 7)
-        GridPane modulesGrid = createModulesGrid();
-        centerContent.getChildren().add(modulesGrid);
+        // Tab 2: Movie Management
+        MovieManagementView movieView = new MovieManagementView();
+        Tab movieTab = new Tab("Movies", movieView.getView());
 
-        ScrollPane scrollPane = new ScrollPane(centerContent);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        // Tab 3: Screen Management
+        ScreenManagementView screenView = new ScreenManagementView();
+        Tab screenTab = new Tab("Screens & Seats", screenView.getView());
 
-        root.setCenter(scrollPane);
+        // Tab 4: Showtime Management
+        ShowtimeManagementView showtimeView = new ShowtimeManagementView();
+        Tab showtimeTab = new Tab("Showtimes", showtimeView.getView());
+
+        // Tab 5: Booking Management
+        BookingManagementView bookingView = new BookingManagementView();
+        Tab bookingTab = new Tab("All Bookings", bookingView.getView());
+
+        // Tab 6: Reports & CSV Export
+        ReportView reportView = new ReportView();
+        Tab reportTab = new Tab("Reports & Analytics", reportView.getView());
+
+        // Selection listener: Refresh tabs on select
+        tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            if (newTab == movieTab) movieView.refreshTable();
+            if (newTab == screenTab) screenView.refreshTable();
+            if (newTab == showtimeTab) showtimeView.refreshTable();
+            if (newTab == bookingTab) bookingView.applyFilters();
+            if (newTab == reportTab) reportView.loadAllReportData();
+        });
+
+        tabPane.getTabs().addAll(overviewTab, movieTab, screenTab, showtimeTab, bookingTab, reportTab);
+        root.setCenter(tabPane);
 
         // Footer
         HBox footer = createFooter();
@@ -58,7 +77,7 @@ public class AdminDashboardView {
 
     private VBox createTopNav() {
         VBox header = new VBox(6);
-        header.setPadding(new Insets(16, 40, 16, 40));
+        header.setPadding(new Insets(14, 30, 14, 30));
         header.setStyle("-fx-background-color: #111a2e; -fx-border-color: #232d48; -fx-border-width: 0 0 1px 0;");
 
         HBox row = new HBox(16);
@@ -73,10 +92,9 @@ public class AdminDashboardView {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Admin User Profile Info
-        HBox userBox = new HBox(8);
+        HBox userBox = new HBox(10);
         userBox.setAlignment(Pos.CENTER);
-        Label userLabel = new Label("Signed in as: " + adminUser.getFullName() + " (" + adminUser.getUsername() + ")");
+        Label userLabel = new Label("Admin: " + adminUser.getFullName() + " (" + adminUser.getUsername() + ")");
         userLabel.getStyleClass().add("text-subtitle");
 
         Button logoutBtn = new Button("Log Out");
@@ -93,108 +111,74 @@ public class AdminDashboardView {
         return header;
     }
 
-    private VBox createWelcomeCard() {
-        VBox card = new VBox(14);
-        card.getStyleClass().add("card");
-        card.setMaxWidth(920);
+    private Parent createOverviewContent(TabPane tabPane) {
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(24));
+        content.setAlignment(Pos.TOP_CENTER);
 
-        HBox titleRow = new HBox(14);
+        VBox welcomeCard = new VBox(12);
+        welcomeCard.getStyleClass().add("card");
+        welcomeCard.setMaxWidth(920);
+
+        HBox titleRow = new HBox(12);
         titleRow.setAlignment(Pos.CENTER_LEFT);
-
         Label welcomeTitle = new Label("Welcome back, " + adminUser.getFullName() + "!");
         welcomeTitle.getStyleClass().add("title-large");
-
-        Label roleBadge = new Label("ROLE: " + adminUser.getRole().name());
+        Label roleBadge = new Label("ROLE: ADMIN");
         roleBadge.getStyleClass().add("badge-warning");
+        titleRow.getChildren().addAll(welcomeTitle, roleBadge);
 
-        Label activeBadge = new Label(adminUser.isActive() ? "ACTIVE ACCOUNT" : "INACTIVE");
-        activeBadge.getStyleClass().add(adminUser.isActive() ? "badge-success" : "badge-danger");
-
-        titleRow.getChildren().addAll(welcomeTitle, roleBadge, activeBadge);
-
-        Label desc = new Label("Authentication verified successfully. You have full administrator privileges to configure screens, manage movies and showtimes, supervise bookings, and view financial reports.");
+        Label desc = new Label("You have full administrative control over the multiplex. Manage movies, auditorium seating layouts, screening schedules, customer reservations, and inspect revenue reports.");
         desc.getStyleClass().add("text-body");
+        welcomeCard.getChildren().addAll(titleRow, desc);
 
-        HBox detailsRow = new HBox(28);
-        detailsRow.setStyle("-fx-background-color: #0d1525; -fx-padding: 12px 18px; -fx-background-radius: 8px; -fx-border-color: #1e293b; -fx-border-width: 1px; -fx-border-radius: 8px;");
-
-        Label idLbl = new Label("Admin ID: " + adminUser.getId());
-        idLbl.getStyleClass().add("text-muted");
-
-        Label emailLbl = new Label("Email: " + adminUser.getEmail());
-        emailLbl.getStyleClass().add("text-muted");
-
-        Label hashInfo = new Label("Security: Salted SHA-256 Verified");
-        hashInfo.getStyleClass().add("text-muted");
-
-        detailsRow.getChildren().addAll(idLbl, emailLbl, hashInfo);
-
-        card.getChildren().addAll(titleRow, desc, detailsRow);
-        return card;
-    }
-
-    private GridPane createModulesGrid() {
         GridPane grid = new GridPane();
-        grid.setHgap(20);
-        grid.setVgap(20);
+        grid.setHgap(16);
+        grid.setVgap(16);
         grid.setMaxWidth(920);
 
-        grid.add(createModuleCard("🎬 Movie Catalog Management",
-                "Add, edit, deactivate, and view movies with duration and ratings.",
-                "Phase 3 Module"), 0, 0);
+        grid.add(createActionCard("🎬 Manage Movies", "Add, edit, search, and activate/deactivate catalog titles.", "Open Movies", () -> tabPane.getSelectionModel().select(1)), 0, 0);
+        grid.add(createActionCard("🏛 Screens & Seats", "Configure auditoriums and auto-generate seat matrices.", "Open Screens", () -> tabPane.getSelectionModel().select(2)), 1, 0);
+        grid.add(createActionCard("🕒 Showtime Scheduling", "Schedule shows with conflict and overlap prevention.", "Open Showtimes", () -> tabPane.getSelectionModel().select(3)), 0, 1);
+        grid.add(createActionCard("📊 Reports & CSV Export", "View 7-day revenue, top movies, and download CSVs.", "Open Reports", () -> tabPane.getSelectionModel().select(5)), 1, 1);
 
-        grid.add(createModuleCard("🏛 Auditorium & Screen Layout",
-                "Configure screen dimensions and automatically generate seating layouts.",
-                "Phase 3 Module"), 1, 0);
+        content.getChildren().addAll(welcomeCard, grid);
 
-        grid.add(createModuleCard("🕒 Showtime Scheduling",
-                "Schedule movie screenings with conflict and overlap prevention logic.",
-                "Phase 3 Module"), 0, 1);
-
-        grid.add(createModuleCard("📊 Reports & Revenue Analytics",
-                "Visual revenue BarCharts, movie ticket PieCharts, and CSV exports.",
-                "Phase 7 Module"), 1, 1);
-
-        return grid;
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        return scroll;
     }
 
-    private VBox createModuleCard(String title, String desc, String badgeText) {
+    private VBox createActionCard(String title, String desc, String btnText, Runnable action) {
         VBox card = new VBox(10);
         card.getStyleClass().add("card");
         card.setPrefWidth(440);
-        card.setMinHeight(120);
-
-        HBox top = new HBox(8);
-        top.setAlignment(Pos.CENTER_LEFT);
 
         Label titleLbl = new Label(title);
         titleLbl.getStyleClass().add("title-small");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label badge = new Label(badgeText);
-        badge.getStyleClass().add("badge-info");
-
-        top.getChildren().addAll(titleLbl, spacer, badge);
-
         Label descLbl = new Label(desc);
         descLbl.getStyleClass().add("text-body");
-        descLbl.setWrapText(true);
 
-        card.getChildren().addAll(top, descLbl);
+        Button actionBtn = new Button(btnText);
+        actionBtn.getStyleClass().add("button-primary");
+        // ActionEvent: Navigates to the selected management tab
+        actionBtn.setOnAction(e -> action.run());
+
+        card.getChildren().addAll(titleLbl, descLbl, actionBtn);
         return card;
     }
 
     private HBox createFooter() {
         HBox footer = new HBox();
-        footer.setPadding(new Insets(12, 40, 12, 40));
+        footer.setPadding(new Insets(10, 30, 10, 30));
         footer.setAlignment(Pos.CENTER_RIGHT);
         footer.setStyle("-fx-background-color: #0b111e; -fx-border-color: #1e293b; -fx-border-width: 1px 0 0 0;");
 
-        Label footerLabel = new Label("CineFlow Administrator Console • Phase 2 Authentication Verified");
-        footerLabel.getStyleClass().add("text-muted");
-        footer.getChildren().add(footerLabel);
+        Label label = new Label("CineFlow Administrator Console • Pure JDBC • MySQL 8.x");
+        label.getStyleClass().add("text-muted");
+        footer.getChildren().add(label);
         return footer;
     }
 }

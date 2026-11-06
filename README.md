@@ -42,15 +42,19 @@ CineFlow strictly follows a 5-layer separation of concerns:
 
 ```
 com.cineflow
-├── Main.java              # Application launcher and Phase 1 verification
-├── model/                 # Entity POJOs (User, Movie, Screen, Seat, Showtime, Booking, Payment)
-├── dao/                   # DAO classes (UserDAO, MovieDAO, ScreenDAO, ShowtimeDAO, BookingDAO)
-├── service/               # Service classes (AuthService, MovieService, BookingService, ReportService)
+├── Main.java              # Application launcher and central stage wiring
+├── model/                 # Entity POJOs (User, Role, Movie, Screen, Seat, SeatType, Showtime,
+│                          #               Booking, BookingSeat, Payment, SeatHold, OccupancyReportItem)
+├── dao/                   # DAO classes (UserDAO, MovieDAO, ScreenDAO, SeatDAO, ShowtimeDAO, BookingDAO, ReportDAO)
+├── service/               # Service classes (AuthService, MovieService, ScreenService, ShowtimeService,
+│                          #                  BookingService, ReportService)
 ├── ui/
-│   ├── common/            # Reusable UI widgets, alerts, navigation bar
-│   ├── auth/              # LoginView and RegistrationView
-│   ├── admin/             # AdminDashboard, MovieView, ScreenView, ShowtimeView, ReportView
-│   └── customer/          # CustomerDashboard, MovieBrowser, SeatMapView, PaymentDialog, TicketView
+│   ├── common/            # NavigationManager, AlertHelper
+│   ├── auth/              # LoginView, RegistrationView
+│   ├── admin/             # AdminDashboardView, MovieManagementView, ScreenManagementView,
+│   │                      # ShowtimeManagementView, BookingManagementView, ReportView
+│   └── customer/          # CustomerDashboardView, MovieCatalogView, ShowtimeSelectionView,
+│                          # SeatMapView, PaymentDialog, TicketSummaryView, CustomerBookingsView
 └── util/                  # DBConnection, PasswordUtil, AlertHelper, CsvExporter
 ```
 
@@ -77,7 +81,7 @@ The database consists of **9 normalized InnoDB tables**:
 
 ## Sample Credentials for Evaluation
 
-The seed script initializes three deterministic accounts hashed using salted SHA-256:
+The seed script initializes deterministic accounts hashed using salted SHA-256:
 
 | Role | Username | Password | Full Name | Email |
 |---|---|---|---|---|
@@ -85,55 +89,58 @@ The seed script initializes three deterministic accounts hashed using salted SHA
 | **CUSTOMER** | `john_doe` | `Customer@123` | John Doe | john.doe@example.com |
 | **CUSTOMER** | `jane_smith` | `Customer@123` | Jane Smith | jane.smith@example.com |
 
+> **Evaluation Shortcut**: The Login screen features single-click autofill buttons for both `admin` and `john_doe`.
+
 ---
 
 ## Setup & Running Guide
 
 ### 1. Prerequisites
-- **JDK 21** or higher installed and on `PATH`.
-- **Apache Maven 3.9+** installed and on `PATH`.
+- **JDK 21** or higher installed.
+- **Apache Maven 3.9+** installed.
 - **MySQL Server 8.0+** running locally on port 3306.
 
 ### 2. Database Initialization
 Execute the schema and seed scripts in MySQL:
 ```bash
-# Using MySQL Command Line Client
 mysql -u root -p < database/schema.sql
 mysql -u root -p < database/seed_data.sql
 ```
 
 ### 3. Database Credentials Configuration
-Copy `db.properties.example` to `db.properties` in the project root:
+`db.properties` is configured in the root:
 ```properties
-db.url=jdbc:mysql://localhost:3306/cineflow_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+db.url=jdbc:mysql://localhost:3306/cineflow_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata&characterEncoding=UTF-8
 db.user=root
 db.password=your_mysql_password
 ```
-*(Note: `db.properties` is strictly ignored by `.gitignore` to prevent credential leaks).*
 
-### 4. Build and Run
-Compile the project:
+### 4. Build and Test
 ```bash
+# Compile
 mvn clean compile
+
+# Execute all 21 automated tests
+mvn test
 ```
 
-Launch the JavaFX desktop application:
+### 5. Launch Application
 ```bash
 mvn javafx:run
 ```
 
 ---
 
-## Development Roadmap (8 Strict Phases)
+## Features Implemented Across All 8 Phases
 
 - [x] **Phase 1: Project Foundation** — Maven configuration, package structure, database schema, deterministic seed data, CSS design system, JDBC connection verification window.
 - [x] **Phase 2: Authentication** — User entity, UserDAO, salted SHA-256 password hashing, AuthService, Login & Registration JavaFX views, role-based navigation.
-- [ ] **Phase 3: Admin Management** — Movie CRUD, Screen configuration, dynamic seat layout generation, Showtime scheduling with conflict/overlap detection.
-- [ ] **Phase 4: Customer Browsing & Seat Map** — Customer dashboard, search-as-you-type, multi-attribute filtering, interactive JavaFX seat map with price calculation.
-- [ ] **Phase 5: Seat Holds & ACID Booking Transaction** — 5-minute hold timer with Timeline countdown, simulated payment dialog, JDBC transaction with `SELECT ... FOR UPDATE`, ticket summary.
-- [ ] **Phase 6: Booking Management** — Customer booking history, ticket viewing, cancellation before showtime with refund transaction, admin booking oversight with SQL JOIN filters.
-- [ ] **Phase 7: Reports & CSV Export** — Total revenue, today's bookings, 7-day revenue BarChart, top movies PieChart, showtime occupancy metrics, RFC-4180 CSV export.
-- [ ] **Phase 8: Final Quality Review** — End-to-end integration testing, input validation audits, error handling polish, viva defense preparation.
+- [x] **Phase 3: Admin Management** — Movie CRUD, Screen configuration, dynamic seat layout generation, Showtime scheduling with conflict/overlap detection.
+- [x] **Phase 4: Customer Browsing & Seat Map** — Customer dashboard, search-as-you-type, multi-attribute filtering, interactive JavaFX seat map with price calculation.
+- [x] **Phase 5: Seat Holds & ACID Booking Transaction** — 5-minute hold timer with Timeline countdown, simulated payment dialog, JDBC transaction with `SELECT ... FOR UPDATE`, ticket summary.
+- [x] **Phase 6: Booking Management** — Customer booking history, ticket viewing, cancellation before showtime with refund transaction, admin booking oversight with SQL JOIN filters.
+- [x] **Phase 7: Reports & CSV Export** — Total revenue, today's bookings, 7-day revenue BarChart, top movies PieChart, showtime occupancy metrics, RFC-4180 CSV export.
+- [x] **Phase 8: Final Quality Review** — End-to-end integration testing, input validation audits, error handling polish, viva defense preparation.
 
 ---
 
@@ -144,4 +151,3 @@ mvn javafx:run
 - **Member 3**: Customer Dashboard, Movie Catalog Browser, Search/Filters, Interactive Seat Map.
 - **Member 4**: Seat Holds, Timeline Countdown, Payment Dialog, ACID Booking Transaction, Cancellation.
 - **Member 5**: Admin Booking JOIN Queries, Revenue Reports, JavaFX Charts, CSV Exporter.
-
