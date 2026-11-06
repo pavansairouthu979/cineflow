@@ -77,35 +77,46 @@ public class AdminDashboardView {
 
     private VBox createTopNav() {
         VBox header = new VBox(6);
-        header.setPadding(new Insets(14, 30, 14, 30));
-        header.setStyle("-fx-background-color: #111a2e; -fx-border-color: #232d48; -fx-border-width: 0 0 1px 0;");
+        header.setPadding(new Insets(12, 28, 12, 28));
+        header.setStyle("-fx-background-color: rgba(16, 20, 32, 0.85); -fx-border-color: rgba(255, 255, 255, 0.12); -fx-border-width: 0 0 1px 0; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 12, 0, 0, 4);");
 
         HBox row = new HBox(16);
         row.setAlignment(Pos.CENTER_LEFT);
 
+        // Apple macOS Window Controls (Traffic Light Dots)
+        HBox trafficLights = new HBox(6);
+        trafficLights.setAlignment(Pos.CENTER_LEFT);
+        javafx.scene.shape.Circle redDot = new javafx.scene.shape.Circle(5.5, javafx.scene.paint.Color.web("#ff5f56"));
+        javafx.scene.shape.Circle yellowDot = new javafx.scene.shape.Circle(5.5, javafx.scene.paint.Color.web("#ffbd2e"));
+        javafx.scene.shape.Circle greenDot = new javafx.scene.shape.Circle(5.5, javafx.scene.paint.Color.web("#27c93f"));
+        trafficLights.getChildren().addAll(redDot, yellowDot, greenDot);
+
         Label brandLabel = new Label("CINEFLOW");
         brandLabel.getStyleClass().add("brand-text");
+        brandLabel.setStyle("-fx-font-size: 22px;");
 
         Label adminPill = new Label("ADMIN CONSOLE");
         adminPill.getStyleClass().add("badge-warning");
+        adminPill.setStyle("-fx-font-size: 10px; -fx-padding: 3px 8px;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         HBox userBox = new HBox(10);
         userBox.setAlignment(Pos.CENTER);
-        Label userLabel = new Label("Admin: " + adminUser.getFullName() + " (" + adminUser.getUsername() + ")");
+        Label userLabel = new Label("Admin: " + adminUser.getFullName() + " (@" + adminUser.getUsername() + ")");
         userLabel.getStyleClass().add("text-subtitle");
+        userLabel.setStyle("-fx-text-fill: #e4e4e7; -fx-font-weight: 600;");
 
         Button logoutBtn = new Button("Log Out");
         logoutBtn.getStyleClass().add("button-secondary");
-        logoutBtn.setStyle("-fx-font-size: 12px; -fx-padding: 6px 14px;");
+        logoutBtn.setStyle("-fx-font-size: 12px; -fx-padding: 6px 14px; -fx-background-radius: 14px;");
 
         // ActionEvent: Logs out admin and returns to Login screen
         logoutBtn.setOnAction(e -> NavigationManager.logout());
 
         userBox.getChildren().addAll(userLabel, logoutBtn);
-        row.getChildren().addAll(brandLabel, adminPill, spacer, userBox);
+        row.getChildren().addAll(trafficLights, brandLabel, adminPill, spacer, userBox);
 
         header.getChildren().add(row);
         return header;

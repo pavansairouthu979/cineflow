@@ -101,3 +101,4 @@ public class BookingService {
         return bookingDAO.findAllJoined(start, end, movieId, status, username);
     }
 }
+

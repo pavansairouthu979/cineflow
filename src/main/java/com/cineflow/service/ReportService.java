@@ -44,3 +44,4 @@ public class ReportService {
         return reportDAO.getShowtimeOccupancy();
     }
 }
+

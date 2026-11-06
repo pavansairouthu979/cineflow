@@ -3,6 +3,7 @@ package com.cineflow.service;
 import com.cineflow.dao.*;
 import com.cineflow.model.*;
 import com.cineflow.util.CsvExporter;
+import com.cineflow.util.DBConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -152,6 +153,36 @@ class EndToEndSystemTest {
         // Pick upcoming showtime 5
         int showtimeId = 5;
 
+        // Idempotent test cleanup: clear any prior test payments, booking_seats, bookings and holds on showtime 5
+        try (java.sql.Connection conn = DBConnection.getConnection()) {
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                    "DELETE p FROM payments p JOIN bookings b ON p.booking_id = b.id WHERE b.showtime_id = ? AND b.user_id IN (?, ?)")) {
+                ps.setInt(1, showtimeId);
+                ps.setInt(2, user1);
+                ps.setInt(3, user2);
+                ps.executeUpdate();
+            }
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                    "DELETE bs FROM booking_seats bs JOIN bookings b ON bs.booking_id = b.id WHERE b.showtime_id = ? AND b.user_id IN (?, ?)")) {
+                ps.setInt(1, showtimeId);
+                ps.setInt(2, user1);
+                ps.setInt(3, user2);
+                ps.executeUpdate();
+            }
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM bookings WHERE showtime_id = ? AND user_id IN (?, ?)")) {
+                ps.setInt(1, showtimeId);
+                ps.setInt(2, user1);
+                ps.setInt(3, user2);
+                ps.executeUpdate();
+            }
+            try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM seat_holds WHERE showtime_id = ?")) {
+                ps.setInt(1, showtimeId);
+                ps.executeUpdate();
+            }
+        }
+
         // Screen 1: Pick seat 1 (A1) and seat 2 (A2)
         List<Integer> targetSeatIds = List.of(1, 2);
         List<BigDecimal> prices = List.of(new BigDecimal("250.00"), new BigDecimal("250.00"));
@@ -231,3 +262,4 @@ class EndToEndSystemTest {
         assertTrue(revCsvContent.contains("TOTAL REVENUE"));
     }
 }
+

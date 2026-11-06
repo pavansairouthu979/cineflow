@@ -48,3 +48,4 @@ public class SeatHold {
         return heldUntil != null && LocalDateTime.now().isAfter(heldUntil);
     }
 }
+

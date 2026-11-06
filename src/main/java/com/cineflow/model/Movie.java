@@ -77,3 +77,4 @@ public class Movie {
         return title + " (" + language + " • " + durationMinutes + "m)";
     }
 }
+

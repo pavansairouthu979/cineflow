@@ -193,3 +193,4 @@ public class CustomerBookingsView {
         }
     }
 }
+

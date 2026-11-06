@@ -102,3 +102,4 @@ public class Booking {
                LocalDateTime.now().isBefore(showtimeStart);
     }
 }
+

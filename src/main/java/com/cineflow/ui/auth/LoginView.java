@@ -46,17 +46,25 @@ public class LoginView {
     }
 
     private VBox createLoginCard() {
-        VBox card = new VBox(18);
+        VBox card = new VBox(16);
         card.getStyleClass().add("card");
         card.setMaxWidth(440);
         card.setAlignment(Pos.TOP_CENTER);
-        card.setPadding(new Insets(36, 36, 32, 36));
+        card.setPadding(new Insets(28, 36, 32, 36));
+
+        // Apple macOS Window Controls
+        HBox trafficLights = new HBox(6);
+        trafficLights.setAlignment(Pos.CENTER_LEFT);
+        javafx.scene.shape.Circle redDot = new javafx.scene.shape.Circle(5, javafx.scene.paint.Color.web("#ff5f56"));
+        javafx.scene.shape.Circle yellowDot = new javafx.scene.shape.Circle(5, javafx.scene.paint.Color.web("#ffbd2e"));
+        javafx.scene.shape.Circle greenDot = new javafx.scene.shape.Circle(5, javafx.scene.paint.Color.web("#27c93f"));
+        trafficLights.getChildren().addAll(redDot, yellowDot, greenDot);
 
         // CineFlow Brand Header
         Label brandLabel = new Label("CINEFLOW");
         brandLabel.getStyleClass().add("brand-text");
 
-        Label subtitle = new Label("Multiplex Ticket Reservation System");
+        Label subtitle = new Label("Multiplex Ticket Reservation System • Apple Edition");
         subtitle.getStyleClass().add("text-subtitle");
 
         Label headerPrompt = new Label("Sign in to your account");
@@ -119,7 +127,7 @@ public class LoginView {
         VBox demoBox = createDemoAutofillBox();
 
         card.getChildren().addAll(
-                brandLabel, subtitle, headerPrompt, errorLabel,
+                trafficLights, brandLabel, subtitle, headerPrompt, errorLabel,
                 usernameBox, passwordBox, loginButton,
                 registerBox, demoBox
         );

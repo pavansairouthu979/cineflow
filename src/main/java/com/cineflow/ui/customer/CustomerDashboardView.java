@@ -11,10 +11,11 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Circle;
 
 /**
- * Main Customer Dashboard coordinator handling movie browsing,
- * showtime selection, seat map visualization, checkout, and bookings.
+ * Main Customer Dashboard coordinator styled with Apple Liquid Glass aesthetic,
+ * macOS navigation bar, and seamless customer booking lifecycle.
  */
 public class CustomerDashboardView {
 
@@ -25,6 +26,9 @@ public class CustomerDashboardView {
     private MovieCatalogView catalogView;
     private CustomerBookingsView bookingsView;
 
+    private Button browseBtn;
+    private Button myBookingsBtn;
+
     public CustomerDashboardView(User customerUser) {
         this.customerUser = customerUser;
     }
@@ -33,7 +37,7 @@ public class CustomerDashboardView {
         root = new BorderPane();
         root.getStyleClass().add("app-container");
 
-        // Top Navigation Header
+        // Top Navigation Header (Apple macOS Liquid Glass Topbar)
         VBox topNav = createTopNav();
         root.setTop(topNav);
 
@@ -57,45 +61,54 @@ public class CustomerDashboardView {
 
     private VBox createTopNav() {
         VBox header = new VBox(6);
-        header.setPadding(new Insets(14, 30, 14, 30));
-        header.setStyle("-fx-background-color: #111a2e; -fx-border-color: #232d48; -fx-border-width: 0 0 1px 0;");
+        header.setPadding(new Insets(12, 28, 12, 28));
+        header.setStyle("-fx-background-color: rgba(16, 20, 32, 0.85); -fx-border-color: rgba(255, 255, 255, 0.12); -fx-border-width: 0 0 1px 0; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 12, 0, 0, 4);");
 
         HBox row = new HBox(16);
         row.setAlignment(Pos.CENTER_LEFT);
 
+        // Apple macOS Window Controls (Traffic Light Dots)
+        HBox trafficLights = new HBox(6);
+        trafficLights.setAlignment(Pos.CENTER_LEFT);
+        Circle redDot = new Circle(5.5, javafx.scene.paint.Color.web("#ff5f56"));
+        Circle yellowDot = new Circle(5.5, javafx.scene.paint.Color.web("#ffbd2e"));
+        Circle greenDot = new Circle(5.5, javafx.scene.paint.Color.web("#27c93f"));
+        trafficLights.getChildren().addAll(redDot, yellowDot, greenDot);
+
         Label brandLabel = new Label("CINEFLOW");
         brandLabel.getStyleClass().add("brand-text");
+        brandLabel.setStyle("-fx-font-size: 22px;");
 
-        Label customerPill = new Label("CUSTOMER PORTAL");
+        Label customerPill = new Label("CINEMA PORTAL");
         customerPill.getStyleClass().add("badge-info");
+        customerPill.setStyle("-fx-font-size: 10px; -fx-padding: 3px 8px;");
 
         // Navigation Tabs / Buttons
-        Button browseBtn = new Button("🎬 Browse Movies");
-        browseBtn.getStyleClass().add("button-secondary");
-        // ActionEvent: Navigates to movie catalog
+        browseBtn = new Button("🎬 Browse Movies");
+        browseBtn.getStyleClass().add("button-primary");
         browseBtn.setOnAction(e -> showCatalog());
 
-        Button myBookingsBtn = new Button("🎟 My Bookings");
+        myBookingsBtn = new Button("🎟 My Bookings");
         myBookingsBtn.getStyleClass().add("button-secondary");
-        // ActionEvent: Navigates to customer's booking history
         myBookingsBtn.setOnAction(e -> showMyBookings());
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox userBox = new HBox(10);
+        HBox userBox = new HBox(12);
         userBox.setAlignment(Pos.CENTER);
-        Label userLabel = new Label("Hello, " + customerUser.getFullName());
+
+        Label userLabel = new Label("👋 " + customerUser.getFullName());
         userLabel.getStyleClass().add("text-subtitle");
+        userLabel.setStyle("-fx-text-fill: #e4e4e7; -fx-font-weight: 600;");
 
         Button logoutBtn = new Button("Log Out");
         logoutBtn.getStyleClass().add("button-secondary");
-        logoutBtn.setStyle("-fx-font-size: 12px; -fx-padding: 6px 14px;");
-        // ActionEvent: Logs out customer and returns to Login screen
+        logoutBtn.setStyle("-fx-font-size: 12px; -fx-padding: 6px 14px; -fx-background-radius: 14px;");
         logoutBtn.setOnAction(e -> NavigationManager.logout());
 
         userBox.getChildren().addAll(userLabel, logoutBtn);
-        row.getChildren().addAll(brandLabel, customerPill, browseBtn, myBookingsBtn, spacer, userBox);
+        row.getChildren().addAll(trafficLights, brandLabel, customerPill, browseBtn, myBookingsBtn, spacer, userBox);
 
         header.getChildren().add(row);
         return header;
@@ -104,12 +117,24 @@ public class CustomerDashboardView {
     public void showCatalog() {
         contentArea.getChildren().clear();
         contentArea.getChildren().add(catalogView.getView());
+        if (browseBtn != null && myBookingsBtn != null) {
+            browseBtn.getStyleClass().remove("button-secondary");
+            if (!browseBtn.getStyleClass().contains("button-primary")) browseBtn.getStyleClass().add("button-primary");
+            myBookingsBtn.getStyleClass().remove("button-primary");
+            if (!myBookingsBtn.getStyleClass().contains("button-secondary")) myBookingsBtn.getStyleClass().add("button-secondary");
+        }
     }
 
     public void showMyBookings() {
         contentArea.getChildren().clear();
         bookingsView.refreshBookings();
         contentArea.getChildren().add(bookingsView.getView());
+        if (browseBtn != null && myBookingsBtn != null) {
+            myBookingsBtn.getStyleClass().remove("button-secondary");
+            if (!myBookingsBtn.getStyleClass().contains("button-primary")) myBookingsBtn.getStyleClass().add("button-primary");
+            browseBtn.getStyleClass().remove("button-primary");
+            if (!browseBtn.getStyleClass().contains("button-secondary")) browseBtn.getStyleClass().add("button-secondary");
+        }
     }
 
     public void showShowtimeSelection(Movie movie) {
@@ -126,7 +151,7 @@ public class CustomerDashboardView {
         SeatMapView seatMapView = new SeatMapView(
                 showtime,
                 seats -> {
-                    // Open modal Payment Dialog
+                    // Open Apple Liquid Glass Payment Dialog
                     PaymentDialog paymentDialog = new PaymentDialog(
                             showtime,
                             seats,
@@ -135,7 +160,6 @@ public class CustomerDashboardView {
                     paymentDialog.show();
                 },
                 () -> {
-                    // Back to showtime selection for this movie
                     Movie m = new Movie();
                     m.setId(showtime.getMovieId());
                     m.setTitle(showtime.getMovieTitle());
@@ -160,9 +184,9 @@ public class CustomerDashboardView {
         HBox footer = new HBox();
         footer.setPadding(new Insets(10, 30, 10, 30));
         footer.setAlignment(Pos.CENTER_RIGHT);
-        footer.setStyle("-fx-background-color: #0b111e; -fx-border-color: #1e293b; -fx-border-width: 1px 0 0 0;");
+        footer.setStyle("-fx-background-color: rgba(12, 15, 24, 0.9); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-width: 1px 0 0 0;");
 
-        Label label = new Label("CineFlow Multiplex • Pure JavaFX & MySQL • Live Real-Time Ticketing");
+        Label label = new Label("CineFlow • Apple Liquid Glass Edition • Powered by Pure JavaFX & MySQL");
         label.getStyleClass().add("text-muted");
         footer.getChildren().add(label);
         return footer;

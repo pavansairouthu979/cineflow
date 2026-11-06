@@ -54,3 +54,4 @@ public class Payment {
     public LocalDateTime getPaidAt() { return paidAt; }
     public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
 }
+

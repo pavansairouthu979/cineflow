@@ -44,3 +44,4 @@ public class OccupancyReportItem {
         return String.format("%.1f%% (%d/%d)", occupancyPercentage, bookedSeats, totalSeats);
     }
 }
+

@@ -19,8 +19,9 @@ public class SeatHoldDAO {
         deleteExpiredHolds();
 
         String sql = "INSERT INTO seat_holds (showtime_id, seat_id, user_id, held_until) VALUES (?, ?, ?, ?) " +
-                     "ON DUPLICATE KEY UPDATE user_id = IF(held_until < NOW(), VALUES(user_id), user_id), " +
-                     "held_until = IF(held_until < NOW(), VALUES(held_until), held_until)";
+                     "ON DUPLICATE KEY UPDATE " +
+                     "user_id = IF(held_until < NOW() OR user_id = VALUES(user_id), VALUES(user_id), user_id), " +
+                     "held_until = IF(held_until < NOW() OR user_id = VALUES(user_id), VALUES(held_until), held_until)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -113,3 +114,4 @@ public class SeatHoldDAO {
         }
     }
 }
+

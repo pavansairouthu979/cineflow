@@ -78,3 +78,4 @@ public class ScreenService {
         return seatDAO.findByScreenId(screenId);
     }
 }
+

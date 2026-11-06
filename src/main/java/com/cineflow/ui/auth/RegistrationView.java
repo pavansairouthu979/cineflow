@@ -57,7 +57,15 @@ public class RegistrationView {
         card.getStyleClass().add("card");
         card.setMaxWidth(480);
         card.setAlignment(Pos.TOP_CENTER);
-        card.setPadding(new Insets(32, 36, 28, 36));
+        card.setPadding(new Insets(26, 36, 28, 36));
+
+        // Apple macOS Window Controls
+        HBox trafficLights = new HBox(6);
+        trafficLights.setAlignment(Pos.CENTER_LEFT);
+        javafx.scene.shape.Circle redDot = new javafx.scene.shape.Circle(5, javafx.scene.paint.Color.web("#ff5f56"));
+        javafx.scene.shape.Circle yellowDot = new javafx.scene.shape.Circle(5, javafx.scene.paint.Color.web("#ffbd2e"));
+        javafx.scene.shape.Circle greenDot = new javafx.scene.shape.Circle(5, javafx.scene.paint.Color.web("#27c93f"));
+        trafficLights.getChildren().addAll(redDot, yellowDot, greenDot);
 
         // Brand & Title
         Label brandLabel = new Label("CINEFLOW");
@@ -144,7 +152,7 @@ public class RegistrationView {
         loginBox.getChildren().addAll(hasAccountLabel, loginLink);
 
         card.getChildren().addAll(
-                brandLabel, title, subtitle, errorLabel,
+                trafficLights, brandLabel, title, subtitle, errorLabel,
                 nameBox, userBox, emailBox, passBox, confirmBox,
                 registerButton, loginBox
         );

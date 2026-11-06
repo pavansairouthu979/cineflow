@@ -43,3 +43,4 @@ public class Screen {
         return name + " (" + getTotalSeats() + " seats)";
     }
 }
+

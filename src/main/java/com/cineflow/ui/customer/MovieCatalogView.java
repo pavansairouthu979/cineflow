@@ -3,11 +3,13 @@ package com.cineflow.ui.customer;
 import com.cineflow.model.Movie;
 import com.cineflow.service.MovieService;
 import com.cineflow.util.AlertHelper;
+import com.cineflow.util.PosterHelper;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
 import java.sql.SQLException;
@@ -15,7 +17,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Customer Movie Catalog View featuring search-as-you-type and genre/language filtering.
+ * Customer Movie Catalog View featuring Apple Liquid Glass styling,
+ * high-resolution movie posters, and live search-as-you-type filtering.
  */
 public class MovieCatalogView {
 
@@ -33,15 +36,15 @@ public class MovieCatalogView {
     }
 
     public Parent getView() {
-        VBox root = new VBox(18);
-        root.setPadding(new Insets(20));
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(24));
 
-        // Filter / Search Toolbar
+        // Filter / Search Toolbar (Apple Translucent Glass Card)
         VBox filterCard = createFilterBar();
         root.getChildren().add(filterCard);
 
         // Movie Cards FlowPane
-        movieGrid = new FlowPane(20, 20);
+        movieGrid = new FlowPane(24, 24);
         movieGrid.setPadding(new Insets(10));
         movieGrid.setAlignment(Pos.TOP_LEFT);
 
@@ -58,40 +61,37 @@ public class MovieCatalogView {
     }
 
     private VBox createFilterBar() {
-        VBox card = new VBox(10);
+        VBox card = new VBox(12);
         card.getStyleClass().add("card");
-        card.setPadding(new Insets(16));
+        card.setPadding(new Insets(18, 22, 18, 22));
 
-        Label title = new Label("Explore Featured Movies");
+        Label title = new Label("Explore Featured Movies • Now Showing");
         title.getStyleClass().add("title-medium");
 
-        HBox row = new HBox(12);
+        HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
 
         searchField = new TextField();
-        searchField.setPromptText("Search movies by title...");
-        searchField.setPrefWidth(240);
+        searchField.setPromptText("🔍 Search movies by title...");
+        searchField.setPrefWidth(260);
 
         // Property listener: Search-as-you-type instantly filters movie list
         searchField.textProperty().addListener((obs, oldVal, newVal) -> applySearch());
 
         genreFilter = new ComboBox<>(FXCollections.observableArrayList(
-                "ALL", "Action", "Sci-Fi", "Drama", "Animation", "Comedy", "Thriller"
+                "ALL", "Action", "Sci-Fi", "Drama", "Animation", "Comedy", "Biography", "Thriller"
         ));
         genreFilter.setValue("ALL");
-        // Selection listener: Genre ComboBox filter
         genreFilter.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> applySearch());
 
         langFilter = new ComboBox<>(FXCollections.observableArrayList(
                 "ALL", "English", "Telugu", "Kannada", "Hindi", "Japanese"
         ));
         langFilter.setValue("ALL");
-        // Selection listener: Language ComboBox filter
         langFilter.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> applySearch());
 
         Button resetBtn = new Button("Clear Filters");
         resetBtn.getStyleClass().add("button-secondary");
-        // ActionEvent: Clears search and filters
         resetBtn.setOnAction(e -> {
             searchField.clear();
             genreFilter.setValue("ALL");
@@ -134,52 +134,68 @@ public class MovieCatalogView {
     }
 
     private VBox createMovieCard(Movie movie) {
-        VBox card = new VBox(10);
+        VBox card = new VBox(12);
         card.getStyleClass().add("card");
-        card.setPrefWidth(280);
-        card.setMinHeight(240);
+        card.setPrefWidth(270);
+        card.setMaxWidth(270);
+        card.setAlignment(Pos.TOP_CENTER);
+        card.setPadding(new Insets(14));
+
+        // High-Resolution Movie Poster (Apple Rounded Glass)
+        ImageView poster = PosterHelper.createPosterImageView(movie.getTitle(), 242, 330, 14);
+
+        // Movie Meta Container
+        VBox meta = new VBox(8);
+        meta.setAlignment(Pos.TOP_LEFT);
+        meta.setPadding(new Insets(4, 0, 0, 0));
 
         Label titleLbl = new Label(movie.getTitle());
         titleLbl.getStyleClass().add("title-small");
+        titleLbl.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         titleLbl.setWrapText(true);
 
-        HBox badgeRow = new HBox(8);
+        HBox badgeRow = new HBox(6);
         badgeRow.setAlignment(Pos.CENTER_LEFT);
 
         Label genreBadge = new Label(movie.getGenre());
         genreBadge.getStyleClass().add("badge-info");
+        genreBadge.setStyle("-fx-font-size: 11px; -fx-padding: 3px 8px;");
 
         Label langBadge = new Label(movie.getLanguage());
         langBadge.getStyleClass().add("badge-warning");
+        langBadge.setStyle("-fx-font-size: 11px; -fx-padding: 3px 8px;");
 
         Label ratingBadge = new Label("★ " + movie.getRating());
         ratingBadge.getStyleClass().add("badge-success");
+        ratingBadge.setStyle("-fx-font-size: 11px; -fx-padding: 3px 8px;");
 
         badgeRow.getChildren().addAll(genreBadge, langBadge, ratingBadge);
 
-        Label durLbl = new Label("⏱ Duration: " + movie.getDurationMinutes() + " mins");
+        Label durLbl = new Label("⏱ " + movie.getDurationMinutes() + " mins • Released: " + movie.getReleaseDate());
         durLbl.getStyleClass().add("text-muted");
 
         Label descLbl = new Label(movie.getDescription());
         descLbl.getStyleClass().add("text-body");
+        descLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #a1a1aa;");
         descLbl.setWrapText(true);
-        descLbl.setMaxHeight(60);
+        descLbl.setMaxHeight(40);
 
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        Button showtimesBtn = new Button("View Showtimes →");
+        Button showtimesBtn = new Button("Book Tickets →");
         showtimesBtn.getStyleClass().add("button-primary");
         showtimesBtn.setMaxWidth(Double.MAX_VALUE);
-
-        // ActionEvent: Handles view showtimes button click
         showtimesBtn.setOnAction(e -> {
             if (onMovieSelected != null) {
                 onMovieSelected.accept(movie);
             }
         });
 
-        card.getChildren().addAll(titleLbl, badgeRow, durLbl, descLbl, spacer, showtimesBtn);
+        meta.getChildren().addAll(titleLbl, badgeRow, durLbl, descLbl, showtimesBtn);
+        card.getChildren().addAll(poster, meta);
+
+        // Apple smooth lift hover effect
+        card.setOnMouseEntered(e -> card.setStyle("-fx-translate-y: -4px; -fx-border-color: rgba(10, 132, 255, 0.6); -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.35), 20, 0, 0, 8);"));
+        card.setOnMouseExited(e -> card.setStyle(""));
+
         return card;
     }
 }

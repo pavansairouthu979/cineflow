@@ -1,362 +1,403 @@
 /* ===================================================================
    CineFlow - Multiplex Movie Ticket Reservation System
    Master Design System & Stylesheet
-   Theme: Midnight Navy / Indigo & Violet Cinematic Palette
+   Theme: Apple Liquid Glass (macOS Sequoia / iOS 18 Glassmorphism)
    =================================================================== */
 
-/* Root / Global Variables & Background */
+/* Root / Global Variables & Deep Obsidian Canvas */
 .root {
-    -fx-font-family: "Segoe UI", "Inter", -apple-system, sans-serif;
+    -fx-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "Helvetica Neue", sans-serif;
     -fx-font-size: 14px;
-    -fx-background-color: #0b111e;
-    -fx-text-fill: #f1f5f9;
+    -fx-background-color: #080a12;
+    -fx-text-fill: #f5f5f7;
 }
 
-/* Background Gradients */
+/* Background Canvas with Deep Mesh Ambient Blooms */
 .app-container {
-    -fx-background-color: linear-gradient(to bottom right, #0b111e 0%, #111a2e 50%, #161a36 100%);
+    -fx-background-color: linear-gradient(to bottom right, #090c16 0%, #0d1222 45%, #14172e 100%);
 }
 
-/* Cards & Surface Containers */
+/* Apple Liquid Glass Cards & Surface Containers */
 .card {
-    -fx-background-color: #151d30;
-    -fx-background-radius: 12px;
-    -fx-border-color: #232d48;
+    -fx-background-color: linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(16, 21, 36, 0.82);
+    -fx-background-radius: 18px;
+    -fx-border-color: linear-gradient(to bottom right, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.10) 45%, rgba(255, 255, 255, 0.03) 100%);
     -fx-border-width: 1px;
-    -fx-border-radius: 12px;
+    -fx-border-radius: 18px;
     -fx-padding: 24px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.45), 14, 0, 0, 6);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 22, 0, 0, 8);
+}
+
+.card:hover {
+    -fx-border-color: linear-gradient(to bottom right, rgba(255, 255, 255, 0.40) 0%, rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.06) 100%);
 }
 
 .card-header {
-    -fx-background-color: #1a243c;
-    -fx-background-radius: 10px 10px 0 0;
-    -fx-padding: 16px 20px;
-    -fx-border-color: #2a3556;
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-background-radius: 17px 17px 0 0;
+    -fx-padding: 16px 22px;
+    -fx-border-color: rgba(255, 255, 255, 0.10);
     -fx-border-width: 0 0 1px 0;
 }
 
-/* Typography */
+/* Apple Typography Hierarchy */
 .title-large {
     -fx-font-size: 26px;
-    -fx-font-weight: bold;
+    -fx-font-weight: 800;
     -fx-text-fill: #ffffff;
+    -fx-letter-spacing: -0.5px;
 }
 
 .title-medium {
     -fx-font-size: 20px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #f8fafc;
+    -fx-font-weight: 700;
+    -fx-text-fill: #f5f5f7;
+    -fx-letter-spacing: -0.3px;
 }
 
 .title-small {
-    -fx-font-size: 16px;
+    -fx-font-size: 15px;
     -fx-font-weight: 600;
-    -fx-text-fill: #e2e8f0;
+    -fx-text-fill: #e5e5ea;
 }
 
 .text-subtitle {
     -fx-font-size: 13px;
-    -fx-text-fill: #94a3b8;
+    -fx-text-fill: #98989d;
 }
 
 .text-body {
     -fx-font-size: 14px;
-    -fx-text-fill: #cbd5e1;
+    -fx-text-fill: #d1d1d6;
 }
 
 .text-muted {
     -fx-font-size: 12px;
-    -fx-text-fill: #64748b;
+    -fx-text-fill: #86868b;
 }
 
 .brand-text {
-    -fx-font-size: 28px;
+    -fx-font-size: 26px;
     -fx-font-weight: 800;
-    -fx-text-fill: linear-gradient(to right, #818cf8, #c084fc);
-    -fx-letter-spacing: 1px;
+    -fx-text-fill: linear-gradient(to right, #0A84FF, #5E5CE6, #BF5AF2);
+    -fx-letter-spacing: 0.5px;
+    -fx-effect: dropshadow(gaussian, rgba(94, 92, 230, 0.45), 14, 0, 0, 2);
 }
 
-/* Buttons */
+/* Apple Liquid Buttons */
 .button-primary {
-    -fx-background-color: linear-gradient(to right, #6366f1, #8b5cf6);
+    -fx-background-color: linear-gradient(to bottom, #0A84FF 0%, #0066cc 100%);
     -fx-text-fill: #ffffff;
-    -fx-font-weight: 600;
+    -fx-font-weight: 700;
     -fx-font-size: 14px;
-    -fx-background-radius: 8px;
-    -fx-padding: 10px 22px;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: rgba(255, 255, 255, 0.32);
+    -fx-border-width: 1px;
+    -fx-padding: 9px 22px;
     -fx-cursor: hand;
-    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.45), 14, 0, 0, 4);
 }
 
 .button-primary:hover {
-    -fx-background-color: linear-gradient(to right, #4f46e5, #7c3aed);
-    -fx-effect: dropshadow(three-pass-box, rgba(99, 102, 241, 0.45), 10, 0, 0, 3);
+    -fx-background-color: linear-gradient(to bottom, #2191ff 0%, #0077e6 100%);
+    -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.70), 18, 0, 0, 5);
+}
+
+.button-primary:pressed {
+    -fx-background-color: #0055b3;
+    -fx-translate-y: 1px;
 }
 
 .button-secondary {
-    -fx-background-color: #1e293b;
-    -fx-text-fill: #e2e8f0;
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-text-fill: #e5e5ea;
     -fx-font-weight: 600;
     -fx-font-size: 14px;
-    -fx-background-radius: 8px;
-    -fx-padding: 10px 20px;
-    -fx-cursor: hand;
-    -fx-border-color: #334155;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: rgba(255, 255, 255, 0.18);
     -fx-border-width: 1px;
-    -fx-border-radius: 8px;
+    -fx-padding: 9px 20px;
+    -fx-cursor: hand;
 }
 
 .button-secondary:hover {
-    -fx-background-color: #273549;
-    -fx-border-color: #475569;
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-border-color: rgba(255, 255, 255, 0.30);
+    -fx-text-fill: #ffffff;
+}
+
+.button-secondary:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-translate-y: 1px;
 }
 
 .button-danger {
-    -fx-background-color: #ef4444;
+    -fx-background-color: linear-gradient(to bottom, #ff453a 0%, #d70015 100%);
     -fx-text-fill: #ffffff;
-    -fx-font-weight: 600;
+    -fx-font-weight: 700;
     -fx-font-size: 14px;
-    -fx-background-radius: 8px;
-    -fx-padding: 10px 20px;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-width: 1px;
+    -fx-padding: 9px 20px;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255, 69, 58, 0.4), 12, 0, 0, 3);
 }
 
 .button-danger:hover {
-    -fx-background-color: #dc2626;
-    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.45), 10, 0, 0, 3);
+    -fx-background-color: linear-gradient(to bottom, #ff6961 0%, #e60017 100%);
+    -fx-effect: dropshadow(gaussian, rgba(255, 69, 58, 0.65), 16, 0, 0, 4);
 }
 
 .button-success {
-    -fx-background-color: #10b981;
+    -fx-background-color: linear-gradient(to bottom, #34c759 0%, #248a3d 100%);
     -fx-text-fill: #ffffff;
-    -fx-font-weight: 600;
+    -fx-font-weight: 700;
     -fx-font-size: 14px;
-    -fx-background-radius: 8px;
-    -fx-padding: 10px 20px;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-width: 1px;
+    -fx-padding: 9px 20px;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(52, 199, 89, 0.4), 12, 0, 0, 3);
 }
 
 .button-success:hover {
-    -fx-background-color: #059669;
+    -fx-background-color: linear-gradient(to bottom, #4cd964 0%, #28a745 100%);
 }
 
-/* Badges & Indicators */
+/* Apple Translucent Glass Badges & Indicators */
 .badge-success {
-    -fx-background-color: rgba(16, 185, 129, 0.15);
-    -fx-text-fill: #34d399;
-    -fx-border-color: #10b981;
+    -fx-background-color: rgba(52, 199, 89, 0.18);
+    -fx-text-fill: #34c759;
+    -fx-border-color: rgba(52, 199, 89, 0.55);
     -fx-border-width: 1px;
-    -fx-border-radius: 6px;
-    -fx-background-radius: 6px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-padding: 5px 12px;
+    -fx-padding: 4px 12px;
 }
 
 .badge-danger {
-    -fx-background-color: rgba(239, 68, 68, 0.15);
-    -fx-text-fill: #f87171;
-    -fx-border-color: #ef4444;
+    -fx-background-color: rgba(255, 69, 58, 0.18);
+    -fx-text-fill: #ff453a;
+    -fx-border-color: rgba(255, 69, 58, 0.55);
     -fx-border-width: 1px;
-    -fx-border-radius: 6px;
-    -fx-background-radius: 6px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-padding: 5px 12px;
+    -fx-padding: 4px 12px;
 }
 
 .badge-warning {
-    -fx-background-color: rgba(245, 158, 11, 0.15);
-    -fx-text-fill: #fbbf24;
-    -fx-border-color: #f59e0b;
+    -fx-background-color: rgba(255, 159, 10, 0.18);
+    -fx-text-fill: #ffd60a;
+    -fx-border-color: rgba(255, 159, 10, 0.55);
     -fx-border-width: 1px;
-    -fx-border-radius: 6px;
-    -fx-background-radius: 6px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-padding: 5px 12px;
+    -fx-padding: 4px 12px;
 }
 
 .badge-info {
-    -fx-background-color: rgba(59, 130, 246, 0.15);
-    -fx-text-fill: #60a5fa;
-    -fx-border-color: #3b82f6;
+    -fx-background-color: rgba(10, 132, 255, 0.18);
+    -fx-text-fill: #0A84FF;
+    -fx-border-color: rgba(10, 132, 255, 0.55);
     -fx-border-width: 1px;
-    -fx-border-radius: 6px;
-    -fx-background-radius: 6px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-padding: 5px 12px;
+    -fx-padding: 4px 12px;
 }
 
-/* Form Controls */
+/* Apple Form Inputs (Frosted Glass Inset) */
 .text-field, .password-field {
-    -fx-background-color: #0f172a;
-    -fx-text-fill: #f8fafc;
-    -fx-prompt-text-fill: #64748b;
-    -fx-background-radius: 8px;
-    -fx-border-color: #334155;
+    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #86868b;
+    -fx-background-radius: 12px;
+    -fx-border-color: rgba(255, 255, 255, 0.15);
     -fx-border-width: 1px;
-    -fx-border-radius: 8px;
+    -fx-border-radius: 12px;
     -fx-padding: 10px 14px;
     -fx-font-size: 14px;
 }
 
 .text-field:focused, .password-field:focused {
-    -fx-border-color: #6366f1;
-    -fx-effect: dropshadow(three-pass-box, rgba(99, 102, 241, 0.35), 6, 0, 0, 0);
+    -fx-border-color: #0A84FF;
+    -fx-background-color: rgba(0, 0, 0, 0.50);
+    -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.50), 10, 0, 0, 0);
 }
 
-/* ComboBox */
+/* ComboBox Glass Styling */
 .combo-box {
-    -fx-background-color: #0f172a;
-    -fx-border-color: #334155;
+    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-border-color: rgba(255, 255, 255, 0.15);
     -fx-border-width: 1px;
-    -fx-border-radius: 8px;
-    -fx-background-radius: 8px;
-    -fx-padding: 4px 8px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 4px 10px;
 }
 
 .combo-box .cell {
-    -fx-text-fill: #f8fafc;
+    -fx-text-fill: #f5f5f7;
 }
 
 .combo-box-popup .list-view {
-    -fx-background-color: #1e293b;
-    -fx-border-color: #334155;
-    -fx-background-radius: 8px;
+    -fx-background-color: rgba(20, 25, 42, 0.95);
+    -fx-border-color: rgba(255, 255, 255, 0.18);
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 20, 0, 0, 8);
 }
 
 .combo-box-popup .list-cell {
-    -fx-text-fill: #f8fafc;
-    -fx-padding: 8px 12px;
+    -fx-text-fill: #f5f5f7;
+    -fx-padding: 8px 14px;
 }
 
 .combo-box-popup .list-cell:hover {
-    -fx-background-color: #334155;
+    -fx-background-color: #0A84FF;
+    -fx-text-fill: #ffffff;
 }
 
-/* TableView Styling */
+/* TableView Apple Liquid Glass Styling */
 .table-view {
-    -fx-background-color: #111a2e;
-    -fx-background-radius: 8px;
-    -fx-border-color: #232d48;
+    -fx-background-color: rgba(14, 18, 32, 0.75);
+    -fx-background-radius: 14px;
+    -fx-border-color: rgba(255, 255, 255, 0.12);
     -fx-border-width: 1px;
-    -fx-border-radius: 8px;
+    -fx-border-radius: 14px;
 }
 
 .table-view .column-header-background {
-    -fx-background-color: #18223c;
-    -fx-background-radius: 8px 8px 0 0;
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 14px 14px 0 0;
 }
 
 .table-view .column-header {
     -fx-background-color: transparent;
-    -fx-border-color: #2a3556;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
     -fx-border-width: 0 1px 1px 0;
     -fx-padding: 12px 10px;
 }
 
 .table-view .column-header .label {
-    -fx-text-fill: #94a3b8;
-    -fx-font-weight: bold;
+    -fx-text-fill: #98989d;
+    -fx-font-weight: 700;
     -fx-font-size: 13px;
 }
 
 .table-row-cell {
-    -fx-background-color: #111a2e;
-    -fx-border-color: #1b2642;
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(255, 255, 255, 0.04);
     -fx-border-width: 0 0 1px 0;
 }
 
 .table-row-cell:odd {
-    -fx-background-color: #141f36;
+    -fx-background-color: rgba(255, 255, 255, 0.02);
 }
 
 .table-row-cell:hover {
-    -fx-background-color: #1e2c4f;
+    -fx-background-color: rgba(10, 132, 255, 0.15);
 }
 
 .table-row-cell:selected {
-    -fx-background-color: #312e81;
+    -fx-background-color: rgba(10, 132, 255, 0.35);
+    -fx-border-color: #0A84FF;
 }
 
 .table-cell {
-    -fx-text-fill: #f1f5f9;
+    -fx-text-fill: #f5f5f7;
     -fx-padding: 10px 12px;
 }
 
-/* ScrollBar */
+/* ScrollBar (Apple Minimalist Glass) */
 .scroll-bar:vertical, .scroll-bar:horizontal {
     -fx-background-color: transparent;
 }
 
 .scroll-bar .thumb {
-    -fx-background-color: #334155;
-    -fx-background-radius: 4px;
+    -fx-background-color: rgba(255, 255, 255, 0.18);
+    -fx-background-radius: 8px;
 }
 
 .scroll-bar .thumb:hover {
-    -fx-background-color: #475569;
+    -fx-background-color: rgba(255, 255, 255, 0.35);
 }
 
-/* Seat Map Styling */
+/* Interactive Seat Map Styling - Apple Liquid Glass Edition */
 .seat-button {
-    -fx-min-width: 38px;
-    -fx-min-height: 38px;
-    -fx-max-width: 38px;
-    -fx-max-height: 38px;
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-max-width: 40px;
+    -fx-max-height: 40px;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6px;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
     -fx-cursor: hand;
     -fx-border-width: 1px;
 }
 
+/* Available: Emerald Liquid Glass */
 .seat-available {
-    -fx-background-color: #10b981;
+    -fx-background-color: linear-gradient(to bottom, rgba(52, 199, 89, 0.35) 0%, rgba(36, 138, 61, 0.25) 100%);
     -fx-text-fill: #ffffff;
-    -fx-border-color: #059669;
+    -fx-border-color: rgba(52, 199, 89, 0.70);
+    -fx-effect: dropshadow(gaussian, rgba(52, 199, 89, 0.25), 8, 0, 0, 2);
 }
 
 .seat-available:hover {
-    -fx-background-color: #34d399;
-    -fx-effect: dropshadow(three-pass-box, rgba(52, 211, 153, 0.6), 8, 0, 0, 0);
+    -fx-background-color: linear-gradient(to bottom, rgba(52, 199, 89, 0.65) 0%, rgba(36, 138, 61, 0.50) 100%);
+    -fx-border-color: #34c759;
+    -fx-effect: dropshadow(gaussian, rgba(52, 199, 89, 0.65), 14, 0, 0, 3);
 }
 
+/* Selected: Apple Luminous Blue Glass */
 .seat-selected {
-    -fx-background-color: #3b82f6;
+    -fx-background-color: linear-gradient(to bottom, #0A84FF 0%, #0066cc 100%);
     -fx-text-fill: #ffffff;
-    -fx-border-color: #2563eb;
-    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.6), 8, 0, 0, 0);
+    -fx-border-color: rgba(255, 255, 255, 0.6);
+    -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.85), 16, 0, 0, 4);
 }
 
+/* Held: Amber Frosted Glass */
 .seat-held {
-    -fx-background-color: #f59e0b;
-    -fx-text-fill: #ffffff;
-    -fx-border-color: #d97706;
+    -fx-background-color: rgba(255, 159, 10, 0.28);
+    -fx-text-fill: #ffd60a;
+    -fx-border-color: rgba(255, 159, 10, 0.65);
 }
 
+/* Booked: Muted Slate Glass */
 .seat-booked {
-    -fx-background-color: #ef4444;
-    -fx-text-fill: #ffffff;
-    -fx-border-color: #dc2626;
-    -fx-opacity: 0.65;
+    -fx-background-color: rgba(255, 69, 58, 0.15);
+    -fx-text-fill: #86868b;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-opacity: 0.55;
     -fx-cursor: default;
 }
 
+/* Premium Seat Tier: Golden Specular Halo */
 .seat-premium {
-    -fx-border-color: #fbbf24;
+    -fx-border-color: #ffd60a;
     -fx-border-width: 2px;
 }
 
-/* Screen Curve Representation */
+/* Curved Cinema Screen Representation with Ambient Light Bloom */
 .cinema-screen-bar {
-    -fx-background-color: linear-gradient(to bottom, #818cf8 0%, rgba(129, 140, 248, 0.05) 100%);
-    -fx-background-radius: 50% 50% 0 0;
-    -fx-pref-height: 18px;
-    -fx-border-color: #6366f1;
+    -fx-background-color: linear-gradient(to bottom, #0A84FF 0%, rgba(10, 132, 255, 0.05) 100%);
+    -fx-background-radius: 60% 60% 0 0;
+    -fx-pref-height: 22px;
+    -fx-border-color: linear-gradient(to right, transparent, #0A84FF, #5E5CE6, transparent);
     -fx-border-width: 2px 0 0 0;
+    -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.6), 24, 0, 0, 8);
 }
-

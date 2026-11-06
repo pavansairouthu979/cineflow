@@ -211,14 +211,38 @@ public class SeatMapView {
         proceedBtn.getStyleClass().add("button-primary");
         proceedBtn.setDisable(true);
 
-        // ActionEvent: Proceed to payment with selected seats
+        // ActionEvent: Proceed to payment with selected seats and place 5-minute holds
         proceedBtn.setOnAction(e -> {
             if (selectedSeats.isEmpty()) {
                 AlertHelper.showWarning("No Seats", "Seat Selection Required", "Please choose at least one seat.");
                 return;
             }
-            if (onProceedToPayment != null) {
-                onProceedToPayment.accept(new ArrayList<>(selectedSeats));
+
+            User user = AuthService.getCurrentUser();
+            if (user == null) {
+                AlertHelper.showError("Auth Error", "Session Expired", "Please log in again.");
+                return;
+            }
+
+            List<Integer> seatIds = new ArrayList<>();
+            for (Seat s : selectedSeats) {
+                seatIds.add(s.getId());
+            }
+
+            try {
+                // Reserve temporary 5-minute hold in database
+                bookingService.holdSeats(showtime.getId(), seatIds, user.getId());
+
+                // Launch payment dialog
+                if (onProceedToPayment != null) {
+                    onProceedToPayment.accept(new ArrayList<>(selectedSeats));
+                }
+            } catch (ValidationException ve) {
+                AlertHelper.showWarning("Seat Unavailable", "Could not hold seats", ve.getMessage());
+                loadSeatMap();
+            } catch (SQLException ex) {
+                AlertHelper.showError("Database Error", "Failed to reserve seats", ex.getMessage());
+                loadSeatMap();
             }
         });
 
@@ -327,3 +351,4 @@ public class SeatMapView {
         return btn;
     }
 }
+

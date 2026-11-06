@@ -53,3 +53,4 @@ public class Seat {
         return getSeatCode() + " (" + seatType + ")";
     }
 }
+

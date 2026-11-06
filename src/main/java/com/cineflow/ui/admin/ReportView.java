@@ -306,3 +306,4 @@ public class ReportView {
         return chooser.showSaveDialog(null);
     }
 }
+
