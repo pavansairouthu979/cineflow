@@ -1,0 +1,6 @@
+# CineFlow Database Configuration Example
+# Copy this file to 'db.properties' in the project root and fill in your MySQL credentials
+db.url=jdbc:mysql://localhost:3306/cineflow_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+db.user=root
+db.password=your_mysql_password_here
+
