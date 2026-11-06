@@ -5,9 +5,8 @@ import com.cineflow.service.AuthService;
 import com.cineflow.service.BookingService;
 import com.cineflow.util.AlertHelper;
 import com.cineflow.util.PosterHelper;
-import javafx.animation.KeyFrame;
-import javafx.animation.PauseTransition;
-import javafx.animation.Timeline;
+import javafx.animation.*;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -21,14 +20,20 @@ import javafx.util.Duration;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Apple Liquid Glass Payment & Checkout Modal Dialog.
- * Features interactive Apple Card, UPI, and Cash simulation with live 5-minute hold timer
- * and ACID JDBC transaction execution.
+ * CineFlow — Premium Secure Checkout Dialog.
+ *
+ * Fixes applied:
+ *  1. JDBC transaction runs on a background thread (Platform.runLater for UI updates)
+ *     → UI never freezes during "Processing..." phase
+ *  2. Stage uses a solid dark background (no transparent scene hack)
+ *     → Dialog renders correctly on all platforms
+ *  3. Payment method state is reliably captured at confirm-click time
  */
 public class PaymentDialog {
 
@@ -39,12 +44,11 @@ public class PaymentDialog {
 
     private Stage dialogStage;
     private Timeline countdownTimeline;
-    private int remainingSeconds = 300; // 5 minutes
+    private int remainingSeconds = 300;
 
     private Label timerLabel;
     private PaymentMethod selectedMethod = PaymentMethod.UPI;
 
-    // Form inputs
     private TextField upiField;
     private TextField cardNumberField;
     private TextField cardExpiryField;
@@ -52,43 +56,32 @@ public class PaymentDialog {
     private Button confirmBtn;
     private ProgressIndicator progressIndicator;
 
-    public PaymentDialog(Showtime showtime, List<Seat> selectedSeats, Consumer<Booking> onBookingSuccessful) {
+    public PaymentDialog(Showtime showtime,
+                         List<Seat> selectedSeats,
+                         Consumer<Booking> onBookingSuccessful) {
         this.showtime = showtime;
-        this.selectedSeats = selectedSeats;
+        this.selectedSeats = new ArrayList<>(selectedSeats);   // defensive copy
         this.bookingService = new BookingService();
         this.onBookingSuccessful = onBookingSuccessful;
     }
 
+    /* ================================================================ */
+    /* SHOW                                                               */
+    /* ================================================================ */
     public void show() {
         dialogStage = new Stage();
         dialogStage.initModality(Modality.APPLICATION_MODAL);
-        dialogStage.setTitle("CineFlow • Secure Checkout & Payment");
+        dialogStage.setTitle("CineFlow  •  Secure Checkout");
         dialogStage.setResizable(false);
+        dialogStage.setMinWidth(580);
 
-        VBox content = new VBox(16);
-        content.getStyleClass().add("card");
-        content.setPadding(new Insets(24));
-        content.setPrefWidth(540);
+        // ── Root layout ───────────────────────────────────────────────
+        VBox content = buildContent();
 
-        // Header with Brand & Close
-        HBox headerRow = createHeaderRow();
-
-        // 5-Minute Hold Countdown Banner
-        HBox timerBox = createTimerBox();
-
-        // Order Summary with Movie Poster Thumbnail
-        HBox summaryBox = createSummaryBox();
-
-        // Payment Method Selector (Apple Segmented Glass Control)
-        VBox paymentMethodBox = createPaymentMethodSection();
-
-        // Action Buttons Row (Cancel & Confirm & Pay)
-        HBox actionRow = createActionRow();
-
-        content.getChildren().addAll(headerRow, timerBox, summaryBox, paymentMethodBox, actionRow);
-
+        // ── Scene — solid dark background, no transparency tricks ─────
         Scene scene = new Scene(content);
-        scene.setFill(Color.TRANSPARENT);
+        scene.setFill(Color.web("#0D0B18")); // matches card bg, no white flash
+
         try {
             String css = getClass().getResource("/css/styles.css") != null
                     ? getClass().getResource("/css/styles.css").toExternalForm() : null;
@@ -96,354 +89,488 @@ public class PaymentDialog {
         } catch (Exception ignored) {}
 
         dialogStage.setScene(scene);
-        dialogStage.setOnCloseRequest(e -> handleCancelPayment());
+        dialogStage.setOnCloseRequest(e -> handleCancel());
 
-        startCountdownTimeline();
+        // Slide-in entrance
+        content.setOpacity(0);
+        content.setTranslateY(12);
         dialogStage.show();
+
+        FadeTransition ft = new FadeTransition(Duration.millis(300), content);
+        ft.setToValue(1.0);
+        ft.play();
+        TranslateTransition tt = new TranslateTransition(Duration.millis(300), content);
+        tt.setToY(0);
+        tt.setInterpolator(Interpolator.EASE_OUT);
+        tt.play();
+
+        startCountdown();
     }
 
-    private HBox createHeaderRow() {
+    /* ================================================================ */
+    /* CONTENT BUILDER                                                    */
+    /* ================================================================ */
+    private VBox buildContent() {
+        VBox root = new VBox(0);
+        root.setStyle("-fx-background-color: #0D0B18;");
+        root.setPrefWidth(580);
+
+        // ── Coloured top accent bar ───────────────────────────────────
+        Region accentBar = new Region();
+        accentBar.setPrefHeight(4);
+        accentBar.setStyle(
+            "-fx-background-color: linear-gradient(to right, #8B5CF6, #00C2FF);"
+        );
+
+        // ── Main card padding wrapper ─────────────────────────────────
+        VBox card = new VBox(16);
+        card.setPadding(new Insets(24, 28, 24, 28));
+        card.setStyle(
+            "-fx-background-color: #0D0B18;" +
+            "-fx-border-color: rgba(139,92,246,0.35);" +
+            "-fx-border-width: 0 1px 1px 1px;"
+        );
+
+        card.getChildren().addAll(
+                buildHeader(),
+                buildTimerBanner(),
+                buildSummaryBox(),
+                divider(),
+                buildPaymentMethodSection(),
+                divider(),
+                buildActionRow()
+        );
+
+        root.getChildren().addAll(accentBar, card);
+        return root;
+    }
+
+    /* ================================================================ */
+    /* HEADER                                                             */
+    /* ================================================================ */
+    private HBox buildHeader() {
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
 
-        Label brand = new Label("CINEFLOW CHECKOUT");
-        brand.getStyleClass().add("brand-text");
-        brand.setStyle("-fx-font-size: 18px;");
+        Label brand = new Label("🔐  SECURE CHECKOUT");
+        brand.setStyle(
+            "-fx-font-size: 17px; -fx-font-weight: 900; -fx-text-fill: #F8FAFC;"
+        );
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label sslBadge = new Label("🔒 256-BIT ENCRYPTION");
-        sslBadge.getStyleClass().add("badge-info");
-        sslBadge.setStyle("-fx-font-size: 11px;");
+        Label badge = new Label("256-BIT ENCRYPTED");
+        badge.setStyle(
+            "-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #00C2FF;" +
+            "-fx-background-color: rgba(0,194,255,0.10);" +
+            "-fx-border-color: rgba(0,194,255,0.35);" +
+            "-fx-border-width: 1px; -fx-border-radius: 20px; -fx-background-radius: 20px;" +
+            "-fx-padding: 3px 10px;"
+        );
 
-        row.getChildren().addAll(brand, spacer, sslBadge);
+        row.getChildren().addAll(brand, spacer, badge);
         return row;
     }
 
-    private HBox createTimerBox() {
-        HBox timerBox = new HBox(10);
-        timerBox.setAlignment(Pos.CENTER);
-        timerBox.getStyleClass().add("badge-warning");
-        timerBox.setStyle("-fx-background-color: rgba(255, 159, 10, 0.15); -fx-padding: 8px 16px; -fx-background-radius: 12px; -fx-border-color: rgba(255, 159, 10, 0.5); -fx-border-width: 1px; -fx-border-radius: 12px;");
+    /* ================================================================ */
+    /* TIMER BANNER                                                       */
+    /* ================================================================ */
+    private HBox buildTimerBanner() {
+        HBox box = new HBox(10);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.setStyle(
+            "-fx-background-color: rgba(245,158,11,0.09);" +
+            "-fx-padding: 10px 16px;" +
+            "-fx-background-radius: 10px;" +
+            "-fx-border-color: rgba(245,158,11,0.30);" +
+            "-fx-border-radius: 10px; -fx-border-width: 1px;"
+        );
 
-        Label timerIcon = new Label("⏳");
-        timerIcon.setStyle("-fx-font-size: 15px;");
+        Label icon = new Label("⏳");
+        icon.setStyle("-fx-font-size: 16px;");
 
         timerLabel = new Label("Seats reserved for: 05:00");
-        timerLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #ffd60a;");
+        timerLabel.setStyle(
+            "-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #FCD34D;"
+        );
 
-        timerBox.getChildren().addAll(timerIcon, timerLabel);
-        return timerBox;
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+
+        Label hint = new Label("Complete payment before time expires");
+        hint.setStyle("-fx-font-size: 12px; -fx-text-fill: #78350F;");
+
+        box.getChildren().addAll(icon, timerLabel, sp, hint);
+        return box;
     }
 
-    private HBox createSummaryBox() {
-        HBox box = new HBox(14);
+    /* ================================================================ */
+    /* ORDER SUMMARY                                                      */
+    /* ================================================================ */
+    private HBox buildSummaryBox() {
+        HBox box = new HBox(16);
         box.setAlignment(Pos.CENTER_LEFT);
-        box.getStyleClass().add("card");
-        box.setStyle("-fx-background-color: rgba(255, 255, 255, 0.04); -fx-border-color: rgba(255, 255, 255, 0.12); -fx-padding: 14px; -fx-background-radius: 14px; -fx-border-radius: 14px;");
+        box.setStyle(
+            "-fx-background-color: rgba(139,92,246,0.07);" +
+            "-fx-padding: 16px;" +
+            "-fx-background-radius: 12px;" +
+            "-fx-border-color: rgba(139,92,246,0.22);" +
+            "-fx-border-radius: 12px; -fx-border-width: 1px;"
+        );
 
-        // Movie poster thumbnail (Apple rounded glass)
-        ImageView posterThumb = PosterHelper.createPosterImageView(showtime.getMovieTitle(), 70, 95, 10);
+        // Movie poster thumbnail
+        ImageView poster = PosterHelper.createPosterImageView(
+                showtime.getMovieTitle(), 70, 96, 10);
 
-        // Details column
+        // Details
         VBox details = new VBox(5);
         HBox.setHgrow(details, Priority.ALWAYS);
 
-        Label movieTitle = new Label(showtime.getMovieTitle());
-        movieTitle.getStyleClass().add("title-small");
-        movieTitle.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+        Label movieLbl = new Label(showtime.getMovieTitle());
+        movieLbl.setStyle(
+            "-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: #F8FAFC;"
+        );
 
-        Label showMeta = new Label("🏛 " + showtime.getScreenName() + " • 🕒 " + showtime.getFormattedStartTime());
-        showMeta.getStyleClass().add("text-subtitle");
+        Label screenLbl = new Label("🏛  " + showtime.getScreenName()
+                + "    🕒  " + showtime.getFormattedStartTime());
+        screenLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #A1A1AA;");
 
+        // Calculate total and seat list
         StringBuilder seatCodes = new StringBuilder();
-        BigDecimal total = BigDecimal.ZERO;
+        BigDecimal runningTotal = BigDecimal.ZERO;
         for (int i = 0; i < selectedSeats.size(); i++) {
             Seat s = selectedSeats.get(i);
-            BigDecimal p = s.getSeatType() == SeatType.PREMIUM ? showtime.getPricePremium() : showtime.getPriceRegular();
-            total = total.add(p);
+            BigDecimal p = s.getSeatType() == SeatType.PREMIUM
+                    ? showtime.getPricePremium() : showtime.getPriceRegular();
+            runningTotal = runningTotal.add(p);
             if (i > 0) seatCodes.append(", ");
             seatCodes.append(s.getSeatCode());
         }
 
-        Label seatLabel = new Label("🎟 Seats: " + seatCodes + " (" + selectedSeats.size() + " total)");
-        seatLabel.getStyleClass().add("text-body");
+        Label seatsLbl = new Label("🎟  Seats: " + seatCodes
+                + "  (" + selectedSeats.size() + ")");
+        seatsLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #CBD5E1;");
 
-        Label totalLabel = new Label("Amount Payable: ₹ " + total.toPlainString());
-        totalLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #34c759;");
+        Label totalLbl = new Label("Amount: ₹ " + runningTotal.toPlainString());
+        totalLbl.setStyle(
+            "-fx-font-size: 19px; -fx-font-weight: 900; -fx-text-fill: #22C55E;"
+        );
 
-        details.getChildren().addAll(movieTitle, showMeta, seatLabel, totalLabel);
-        box.getChildren().addAll(posterThumb, details);
+        details.getChildren().addAll(movieLbl, screenLbl, seatsLbl, totalLbl);
+        box.getChildren().addAll(poster, details);
         return box;
     }
 
-    private VBox createPaymentMethodSection() {
-        VBox section = new VBox(10);
+    /* ================================================================ */
+    /* PAYMENT METHOD SELECTOR                                            */
+    /* ================================================================ */
+    private VBox buildPaymentMethodSection() {
+        VBox section = new VBox(12);
 
-        Label secTitle = new Label("Select Payment Method:");
-        secTitle.getStyleClass().add("title-small");
-        secTitle.setStyle("-fx-font-size: 13px;");
+        Label lbl = new Label("Select Payment Method");
+        lbl.setStyle(
+            "-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #CBD5E1;"
+        );
 
-        // Apple Segmented Control Bar
-        HBox segmentedBar = new HBox(8);
-        segmentedBar.setAlignment(Pos.CENTER);
-        segmentedBar.setStyle("-fx-background-color: rgba(0, 0, 0, 0.35); -fx-padding: 4px; -fx-background-radius: 18px;");
+        // Segmented tab bar
+        HBox segBar = new HBox(4);
+        segBar.setStyle(
+            "-fx-background-color: rgba(0,0,0,0.40);" +
+            "-fx-padding: 4px; -fx-background-radius: 12px;" +
+            "-fx-border-color: rgba(139,92,246,0.18);" +
+            "-fx-border-radius: 12px; -fx-border-width: 1px;"
+        );
 
-        Button upiTab = createSegmentButton("📱 UPI / QR Code", true);
-        Button cardTab = createSegmentButton("💳 Credit / Debit Card", false);
-        Button cashTab = createSegmentButton("💵 Pay at Box Office", false);
+        Button upiTab  = segBtn("📱  UPI",          true);
+        Button cardTab = segBtn("💳  Card",          false);
+        Button cashTab = segBtn("💵  Cash",          false);
+        segBar.getChildren().addAll(upiTab, cardTab, cashTab);
 
-        segmentedBar.getChildren().addAll(upiTab, cardTab, cashTab);
+        // Form pane — only one visible at a time
+        StackPane forms = new StackPane();
+        forms.setMinHeight(115);
 
-        // Container holding the dynamic payment form
-        StackPane formContainer = new StackPane();
-        formContainer.setStyle("-fx-min-height: 120px;");
+        VBox upiForm  = buildUpiForm();
+        VBox cardForm = buildCardForm();
+        VBox cashForm = buildCashForm();
 
-        VBox upiView = createUpiForm();
-        VBox cardView = createCardForm();
-        VBox cashView = createCashForm();
+        cardForm.setVisible(false);
+        cashForm.setVisible(false);
+        forms.getChildren().addAll(cardForm, cashForm, upiForm);
 
-        formContainer.getChildren().addAll(cardView, cashView, upiView);
-        cardView.setVisible(false);
-        cashView.setVisible(false);
-        upiView.setVisible(true);
-
-        // Tab selection logic
+        // Tab switching
         upiTab.setOnAction(e -> {
             selectedMethod = PaymentMethod.UPI;
-            setSegmentActive(upiTab, true);
-            setSegmentActive(cardTab, false);
-            setSegmentActive(cashTab, false);
-            upiView.setVisible(true);
-            cardView.setVisible(false);
-            cashView.setVisible(false);
+            setActive(upiTab, true); setActive(cardTab, false); setActive(cashTab, false);
+            upiForm.setVisible(true); cardForm.setVisible(false); cashForm.setVisible(false);
         });
-
         cardTab.setOnAction(e -> {
             selectedMethod = PaymentMethod.CARD;
-            setSegmentActive(upiTab, false);
-            setSegmentActive(cardTab, true);
-            setSegmentActive(cashTab, false);
-            upiView.setVisible(false);
-            cardView.setVisible(true);
-            cashView.setVisible(false);
+            setActive(upiTab, false); setActive(cardTab, true); setActive(cashTab, false);
+            upiForm.setVisible(false); cardForm.setVisible(true); cashForm.setVisible(false);
         });
-
         cashTab.setOnAction(e -> {
             selectedMethod = PaymentMethod.CASH;
-            setSegmentActive(upiTab, false);
-            setSegmentActive(cardTab, false);
-            setSegmentActive(cashTab, true);
-            upiView.setVisible(false);
-            cardView.setVisible(false);
-            cashView.setVisible(true);
+            setActive(upiTab, false); setActive(cardTab, false); setActive(cashTab, true);
+            upiForm.setVisible(false); cardForm.setVisible(false); cashForm.setVisible(true);
         });
 
-        section.getChildren().addAll(secTitle, segmentedBar, formContainer);
+        section.getChildren().addAll(lbl, segBar, forms);
         return section;
     }
 
-    private Button createSegmentButton(String text, boolean active) {
-        Button btn = new Button(text);
-        btn.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(btn, Priority.ALWAYS);
-        setSegmentActive(btn, active);
-        return btn;
+    private Button segBtn(String text, boolean active) {
+        Button b = new Button(text);
+        b.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(b, Priority.ALWAYS);
+        setActive(b, active);
+        return b;
     }
 
-    private void setSegmentActive(Button btn, boolean active) {
+    private void setActive(Button b, boolean active) {
         if (active) {
-            btn.setStyle("-fx-background-color: #0A84FF; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 14px; -fx-padding: 8px 12px; -fx-cursor: hand;");
+            b.setStyle(
+                "-fx-background-color: linear-gradient(to right, #8B5CF6, #6D28D9);" +
+                "-fx-text-fill: white; -fx-font-weight: 700; -fx-font-size: 13px;" +
+                "-fx-background-radius: 9px; -fx-padding: 8px 14px; -fx-cursor: hand;" +
+                "-fx-effect: dropshadow(gaussian, rgba(139,92,246,0.45), 10, 0, 0, 3);"
+            );
         } else {
-            btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #98989d; -fx-background-radius: 14px; -fx-padding: 8px 12px; -fx-cursor: hand;");
+            b.setStyle(
+                "-fx-background-color: transparent; -fx-text-fill: #6B7280;" +
+                "-fx-font-size: 13px; -fx-background-radius: 9px;" +
+                "-fx-padding: 8px 14px; -fx-cursor: hand;"
+            );
         }
     }
 
-    private VBox createUpiForm() {
+    /* ── UPI form ───────────────────────────────────────────────────── */
+    private VBox buildUpiForm() {
         VBox box = new VBox(10);
-        box.setPadding(new Insets(10, 4, 4, 4));
+        box.setPadding(new Insets(6, 0, 0, 0));
 
-        Label prompt = new Label("Enter Virtual Payment Address (VPA / UPI ID):");
-        prompt.getStyleClass().add("text-subtitle");
+        Label prompt = new Label("UPI ID / Virtual Payment Address");
+        prompt.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280;");
 
         upiField = new TextField();
-        upiField.setPromptText("e.g. yourname@okaxis, 9876543210@paytm");
-        upiField.setText(AuthService.getCurrentUser() != null ? AuthService.getCurrentUser().getUsername() + "@okhdfcbank" : "customer@upi");
+        upiField.setPromptText("yourname@okaxis");
+        User currentUser = AuthService.getCurrentUser();
+        if (currentUser != null) {
+            upiField.setText(currentUser.getUsername() + "@okhdfcbank");
+        }
 
-        // Quick click chips for popular UPI providers
         HBox chips = new HBox(8);
         chips.setAlignment(Pos.CENTER_LEFT);
         chips.getChildren().addAll(
-                createUpiChip("@oksbi"),
-                createUpiChip("@okaxis"),
-                createUpiChip("@paytm"),
-                createUpiChip("@ybl")
-        );
+                upiChip("@oksbi"), upiChip("@okaxis"),
+                upiChip("@paytm"), upiChip("@ybl"));
 
         box.getChildren().addAll(prompt, upiField, chips);
         return box;
     }
 
-    private Button createUpiChip(String handle) {
-        Button chip = new Button(handle);
-        chip.getStyleClass().add("button-secondary");
-        chip.setStyle("-fx-font-size: 11px; -fx-padding: 4px 10px; -fx-background-radius: 12px;");
-        chip.setOnAction(e -> {
-            String current = upiField.getText();
-            int atIdx = current.indexOf('@');
-            String prefix = atIdx > 0 ? current.substring(0, atIdx) : current;
+    private Button upiChip(String suffix) {
+        Button c = new Button(suffix);
+        c.setStyle(
+            "-fx-font-size: 11px; -fx-padding: 4px 10px;" +
+            "-fx-background-color: rgba(139,92,246,0.10); -fx-text-fill: #C4B5FD;" +
+            "-fx-background-radius: 12px;" +
+            "-fx-border-color: rgba(139,92,246,0.28);" +
+            "-fx-border-radius: 12px; -fx-border-width: 1px; -fx-cursor: hand;"
+        );
+        c.setOnAction(e -> {
+            if (upiField == null) return;
+            String cur = upiField.getText();
+            int at = cur.indexOf('@');
+            String prefix = at > 0 ? cur.substring(0, at) : cur;
             if (prefix.isBlank()) prefix = "customer";
-            upiField.setText(prefix + handle);
+            upiField.setText(prefix + suffix);
         });
-        return chip;
+        return c;
     }
 
-    private VBox createCardForm() {
+    /* ── Card form ──────────────────────────────────────────────────── */
+    private VBox buildCardForm() {
         VBox box = new VBox(10);
-        box.setPadding(new Insets(10, 4, 4, 4));
+        box.setPadding(new Insets(6, 0, 0, 0));
+
+        Label prompt = new Label("Credit / Debit Card  (Simulated)");
+        prompt.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280;");
 
         cardNumberField = new TextField("4532 8901 2345 7890");
-        cardNumberField.setPromptText("Card Number (16 digits)");
+        cardNumberField.setPromptText("Card number");
 
-        HBox cardRow = new HBox(10);
+        HBox row2 = new HBox(10);
         cardExpiryField = new TextField("12/28");
         cardExpiryField.setPromptText("MM/YY");
-        cardExpiryField.setPrefWidth(120);
+        cardExpiryField.setPrefWidth(100);
 
         cardCvvField = new TextField("888");
         cardCvvField.setPromptText("CVV");
-        cardCvvField.setPrefWidth(90);
+        cardCvvField.setPrefWidth(80);
 
-        Button autofillBtn = new Button("Auto-Fill Test Card");
-        autofillBtn.getStyleClass().add("button-secondary");
-        autofillBtn.setStyle("-fx-font-size: 11px;");
-        autofillBtn.setOnAction(e -> {
+        Button autoFill = new Button("Auto-fill Test Card");
+        autoFill.getStyleClass().add("button-secondary");
+        autoFill.setStyle("-fx-font-size: 11px; -fx-padding: 5px 12px;");
+        autoFill.setOnAction(e -> {
             cardNumberField.setText("4532 8901 2345 7890");
             cardExpiryField.setText("12/28");
             cardCvvField.setText("888");
         });
 
-        cardRow.getChildren().addAll(cardExpiryField, cardCvvField, autofillBtn);
-
-        box.getChildren().addAll(new Label("Simulated Credit/Debit Card Details:"), cardNumberField, cardRow);
+        row2.getChildren().addAll(cardExpiryField, cardCvvField, autoFill);
+        box.getChildren().addAll(prompt, cardNumberField, row2);
         return box;
     }
 
-    private VBox createCashForm() {
+    /* ── Cash form ──────────────────────────────────────────────────── */
+    private VBox buildCashForm() {
         VBox box = new VBox(8);
-        box.setPadding(new Insets(14, 4, 4, 4));
-        box.setAlignment(Pos.CENTER_LEFT);
+        box.setPadding(new Insets(10));
+        box.setStyle(
+            "-fx-background-color: rgba(34,197,94,0.06);" +
+            "-fx-background-radius: 10px;" +
+            "-fx-border-color: rgba(34,197,94,0.22);" +
+            "-fx-border-radius: 10px; -fx-border-width: 1px;"
+        );
 
-        Label infoTitle = new Label("Box Office Counter Cash Payment");
-        infoTitle.getStyleClass().add("title-small");
-        infoTitle.setStyle("-fx-text-fill: #34c759;");
+        Label title = new Label("📍  Pay at Box Office Counter");
+        title.setStyle(
+            "-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #22C55E;"
+        );
 
-        Label desc = new Label("Your reservation will be confirmed immediately. Please show your Booking ID at the box office ticket counter 15 minutes before showtime to pay in cash and collect printed tickets.");
-        desc.getStyleClass().add("text-body");
+        Label desc = new Label(
+            "Your booking is confirmed immediately. Please visit the box office " +
+            "15 minutes before showtime with your Booking ID to pay and collect printed tickets."
+        );
+        desc.setStyle("-fx-font-size: 13px; -fx-text-fill: #A1A1AA; -fx-line-spacing: 2px;");
         desc.setWrapText(true);
 
-        box.getChildren().addAll(infoTitle, desc);
+        box.getChildren().addAll(title, desc);
         return box;
     }
 
-    private HBox createActionRow() {
+    /* ================================================================ */
+    /* ACTION ROW                                                         */
+    /* ================================================================ */
+    private HBox buildActionRow() {
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_RIGHT);
-        row.setPadding(new Insets(10, 0, 0, 0));
+        row.setPadding(new Insets(4, 0, 0, 0));
 
-        Button cancelBtn = new Button("Cancel");
-        cancelBtn.getStyleClass().add("button-secondary");
-        cancelBtn.setOnAction(e -> handleCancelPayment());
-
+        // Compute total & seat prices once
         BigDecimal total = BigDecimal.ZERO;
         List<BigDecimal> seatPrices = new ArrayList<>();
         for (Seat s : selectedSeats) {
-            BigDecimal p = s.getSeatType() == SeatType.PREMIUM ? showtime.getPricePremium() : showtime.getPriceRegular();
+            BigDecimal p = s.getSeatType() == SeatType.PREMIUM
+                    ? showtime.getPricePremium() : showtime.getPriceRegular();
             total = total.add(p);
             seatPrices.add(p);
         }
-        final BigDecimal finalTotal = total;
+        final BigDecimal finalTotal  = total;
+        final List<BigDecimal> finalPrices = seatPrices;
 
         progressIndicator = new ProgressIndicator();
-        progressIndicator.setPrefSize(22, 22);
+        progressIndicator.setPrefSize(24, 24);
         progressIndicator.setVisible(false);
 
-        confirmBtn = new Button("Confirm & Pay ₹ " + finalTotal.toPlainString());
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.getStyleClass().add("button-secondary");
+        cancelBtn.setStyle("-fx-font-size: 14px; -fx-padding: 11px 22px;");
+        cancelBtn.setOnAction(e -> handleCancel());
+
+        confirmBtn = new Button("Confirm & Pay  ₹ " + finalTotal.toPlainString());
         confirmBtn.getStyleClass().add("button-primary");
-        confirmBtn.setStyle("-fx-font-size: 14px; -fx-padding: 10px 24px;");
-        confirmBtn.setOnAction(e -> triggerPaymentProcessing(finalTotal, seatPrices));
+        confirmBtn.setStyle("-fx-font-size: 14px; -fx-padding: 11px 26px;");
+        confirmBtn.setOnAction(e -> triggerPayment(finalTotal, finalPrices));
 
         row.getChildren().addAll(progressIndicator, cancelBtn, confirmBtn);
         return row;
     }
 
-    private void triggerPaymentProcessing(BigDecimal totalAmount, List<BigDecimal> seatPrices) {
-        User user = AuthService.getCurrentUser();
-        if (user == null) {
-            AlertHelper.showError("Auth Error", "Session Expired", "Please log in again.");
-            return;
-        }
-
-        // Validate method specific inputs
+    /* ================================================================ */
+    /* PAYMENT PROCESSING — JDBC runs on background thread              */
+    /* ================================================================ */
+    private void triggerPayment(BigDecimal total, List<BigDecimal> prices) {
+        // ── Input validation ──────────────────────────────────────────
         if (selectedMethod == PaymentMethod.UPI) {
             String upi = upiField != null ? upiField.getText().trim() : "";
             if (upi.isEmpty() || !upi.contains("@")) {
-                AlertHelper.showWarning("Invalid UPI ID", "Please enter a valid UPI ID (e.g. name@bank).", "UPI format must contain '@'.");
+                AlertHelper.showWarning("Invalid UPI ID",
+                        "Validation Error",
+                        "Please enter a valid UPI ID (e.g. yourname@okaxis).");
                 return;
             }
         } else if (selectedMethod == PaymentMethod.CARD) {
-            String cNum = cardNumberField != null ? cardNumberField.getText().replaceAll("\\s+", "") : "";
-            if (cNum.length() < 12) {
-                AlertHelper.showWarning("Invalid Card", "Please enter a valid card number.", "Card number must contain at least 12 digits.");
+            String num = cardNumberField != null
+                    ? cardNumberField.getText().replaceAll("\\s+", "") : "";
+            if (num.length() < 12) {
+                AlertHelper.showWarning("Invalid Card Number",
+                        "Validation Error",
+                        "Card number must be at least 12 digits.");
                 return;
             }
         }
 
-        // Visual simulation: disable button and show progress indicator
-        confirmBtn.setDisable(true);
-        confirmBtn.setText("Processing Secure Payment...");
-        progressIndicator.setVisible(true);
-
-        // 800ms realistic payment gateway simulation before committing JDBC transaction
-        PauseTransition delay = new PauseTransition(Duration.millis(800));
-        delay.setOnFinished(e -> handleConfirmPayment(totalAmount, seatPrices));
-        delay.play();
-    }
-
-    private void handleConfirmPayment(BigDecimal totalAmount, List<BigDecimal> seatPrices) {
         User user = AuthService.getCurrentUser();
         if (user == null) {
-            confirmBtn.setDisable(false);
-            progressIndicator.setVisible(false);
-            AlertHelper.showError("Auth Error", "Session Expired", "Please log in again.");
+            AlertHelper.showError("Session Expired", "Auth Error", "Please log in again.");
             return;
         }
 
-        Booking booking = new Booking(user.getId(), showtime.getId(), null, totalAmount, BookingStatus.CONFIRMED);
-        Payment payment = new Payment(0, selectedMethod, totalAmount, PaymentStatus.PAID);
+        // ── Lock UI ───────────────────────────────────────────────────
+        confirmBtn.setDisable(true);
+        confirmBtn.setText("Processing...");
+        progressIndicator.setVisible(true);
+
+        // Snapshot payment method — captured before background thread starts
+        final PaymentMethod methodSnapshot = selectedMethod;
+
+        // ── Run JDBC on background thread — never block FX thread ─────
+        Thread worker = new Thread(() -> {
+            // Brief visual delay so user sees "Processing..." state
+            try { Thread.sleep(700); } catch (InterruptedException ignored) {}
+            doBookingTransaction(total, prices, user, methodSnapshot);
+        }, "cineflow-booking-worker");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    /**
+     * Executes the ACID JDBC booking transaction on a background thread.
+     * All UI updates are marshalled back to the FX thread via Platform.runLater().
+     */
+    private void doBookingTransaction(BigDecimal total,
+                                      List<BigDecimal> prices,
+                                      User user,
+                                      PaymentMethod method) {
+
+        Booking booking = new Booking(
+                user.getId(), showtime.getId(), null, total, BookingStatus.CONFIRMED);
+        Payment payment = new Payment(
+                0, method, total, PaymentStatus.PAID);
 
         List<Integer> seatIds = new ArrayList<>();
-        for (Seat s : selectedSeats) {
-            seatIds.add(s.getId());
-        }
+        for (Seat s : selectedSeats) seatIds.add(s.getId());
 
         try {
-            // Execute the ACID JDBC transaction
-            boolean success = bookingService.confirmBooking(booking, seatIds, seatPrices, payment);
+            boolean success = bookingService.confirmBooking(booking, seatIds, prices, payment);
 
             if (success) {
-                if (countdownTimeline != null) {
-                    countdownTimeline.stop();
-                }
+                // Stop countdown from background thread (safe — Timeline is FX-managed but
+                // stop() is thread-safe in JavaFX)
+                if (countdownTimeline != null) countdownTimeline.stop();
 
-                // Populate model display fields for ticket summary view
+                // Populate display fields
                 booking.setUsername(user.getUsername());
                 booking.setCustomerName(user.getFullName());
                 booking.setMovieTitle(showtime.getMovieTitle());
                 booking.setScreenName(showtime.getScreenName());
                 booking.setShowtimeStart(showtime.getStartTime());
-                booking.setPaymentMethod(selectedMethod);
+                booking.setBookingTime(LocalDateTime.now());
+                booking.setPaymentMethod(method);
+                booking.setStatus(BookingStatus.CONFIRMED);
 
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < selectedSeats.size(); i++) {
@@ -452,66 +579,100 @@ public class PaymentDialog {
                 }
                 booking.setSeatNumbers(sb.toString());
 
-                dialogStage.close();
-
-                if (onBookingSuccessful != null) {
-                    onBookingSuccessful.accept(booking);
+                // If DAO didn't set an ID, re-fetch most recent booking
+                if (booking.getId() <= 0) {
+                    try {
+                        List<Booking> recent = bookingService.getCustomerBookings(user.getId());
+                        if (!recent.isEmpty()) {
+                            Booking freshBooking = recent.get(0);
+                            freshBooking.setPaymentMethod(method);
+                            Platform.runLater(() -> {
+                                dialogStage.close();
+                                if (onBookingSuccessful != null) onBookingSuccessful.accept(freshBooking);
+                            });
+                            return;
+                        }
+                    } catch (SQLException ignored) {}
                 }
+
+                final Booking finalBooking = booking;
+                Platform.runLater(() -> {
+                    dialogStage.close();
+                    if (onBookingSuccessful != null) onBookingSuccessful.accept(finalBooking);
+                });
+
             } else {
-                confirmBtn.setDisable(false);
-                confirmBtn.setText("Confirm & Pay ₹ " + totalAmount.toPlainString());
-                progressIndicator.setVisible(false);
-                AlertHelper.showError("Booking Failed", "Transaction Failed", "Could not verify reservation.");
+                Platform.runLater(() -> {
+                    resetButton(total);
+                    AlertHelper.showError("Booking Failed",
+                            "Transaction Failed",
+                            "Could not confirm your reservation. Please try again.");
+                });
             }
 
-        } catch (SQLException e) {
-            confirmBtn.setDisable(false);
-            confirmBtn.setText("Confirm & Pay ₹ " + totalAmount.toPlainString());
-            progressIndicator.setVisible(false);
-            AlertHelper.showError("Booking Failed", "Transaction Rolled Back",
-                    "Could not complete booking: " + e.getMessage());
+        } catch (SQLException ex) {
+            final String msg = ex.getMessage();
+            Platform.runLater(() -> {
+                resetButton(total);
+                AlertHelper.showError("Booking Failed", "Database Error", msg);
+            });
         }
     }
 
-    private void startCountdownTimeline() {
-        remainingSeconds = 300; // 5 minutes
-        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+    private void resetButton(BigDecimal total) {
+        confirmBtn.setDisable(false);
+        confirmBtn.setText("Confirm & Pay  ₹ " + total.toPlainString());
+        progressIndicator.setVisible(false);
+    }
+
+    /* ================================================================ */
+    /* COUNTDOWN TIMER                                                    */
+    /* ================================================================ */
+    private void startCountdown() {
+        remainingSeconds = 300;
+        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             remainingSeconds--;
+            int m = remainingSeconds / 60;
+            int s = remainingSeconds % 60;
+            timerLabel.setText(String.format("Seats reserved for: %02d:%02d", m, s));
 
-            int minutes = remainingSeconds / 60;
-            int seconds = remainingSeconds % 60;
-            timerLabel.setText(String.format("Seats reserved for: %02d:%02d", minutes, seconds));
-
+            if (remainingSeconds <= 60) {
+                timerLabel.setStyle(
+                    "-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #EF4444;"
+                );
+            }
             if (remainingSeconds <= 0) {
                 countdownTimeline.stop();
-                handleHoldExpiry();
+                handleExpiry();
             }
         }));
         countdownTimeline.setCycleCount(Timeline.INDEFINITE);
         countdownTimeline.play();
     }
 
-    private void handleHoldExpiry() {
+    private void handleExpiry() {
         User user = AuthService.getCurrentUser();
-        if (user != null) {
-            bookingService.releaseUserHolds(showtime.getId(), user.getId());
-        }
-        AlertHelper.showWarning(
-                "Reservation Expired",
-                "Checkout Timeout",
-                "Your 5-minute seat hold has expired. The seats have been released back to availability."
-        );
-        dialogStage.close();
+        if (user != null) bookingService.releaseUserHolds(showtime.getId(), user.getId());
+        AlertHelper.showWarning("Time Expired",
+                "Seat Hold Expired",
+                "Your 5-minute hold has expired. The seats have been released. Please try again.");
+        if (dialogStage != null) dialogStage.close();
     }
 
-    private void handleCancelPayment() {
-        if (countdownTimeline != null) {
-            countdownTimeline.stop();
-        }
+    private void handleCancel() {
+        if (countdownTimeline != null) countdownTimeline.stop();
         User user = AuthService.getCurrentUser();
-        if (user != null) {
-            bookingService.releaseUserHolds(showtime.getId(), user.getId());
-        }
-        dialogStage.close();
+        if (user != null) bookingService.releaseUserHolds(showtime.getId(), user.getId());
+        if (dialogStage != null) dialogStage.close();
+    }
+
+    /* ================================================================ */
+    /* HELPERS                                                            */
+    /* ================================================================ */
+    private Region divider() {
+        Region r = new Region();
+        r.setMinHeight(1);
+        r.setStyle("-fx-background-color: rgba(139,92,246,0.14);");
+        return r;
     }
 }

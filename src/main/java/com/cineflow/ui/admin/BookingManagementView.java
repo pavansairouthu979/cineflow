@@ -67,7 +67,7 @@ public class BookingManagementView {
         card.getStyleClass().add("card");
         card.setPadding(new Insets(14, 18, 14, 18));
 
-        Label filterTitle = new Label("🔍 Filter & Inspect Customer Reservations (SQL JOIN Queries)");
+        Label filterTitle = new Label("Filter & Search Bookings (SQL JOIN Queries)");
         filterTitle.getStyleClass().add("title-small");
 
         HBox row = new HBox(12);
@@ -91,15 +91,19 @@ public class BookingManagementView {
         loadMovieFilterOptions();
 
         userSearchField = new TextField();
-        userSearchField.setPromptText("👤 Username...");
+        userSearchField.setPromptText("Filter by Username...");
         userSearchField.setPrefWidth(140);
 
-        Button applyBtn = new Button("🔍 Apply Filters");
+        Button applyBtn = new Button("Apply Filters");
         applyBtn.getStyleClass().add("button-primary");
+
+        // ActionEvent: Applies filters to fetch matching bookings
         applyBtn.setOnAction(e -> applyFilters());
 
-        Button resetBtn = new Button("🔄 Reset");
+        Button resetBtn = new Button("Reset");
         resetBtn.getStyleClass().add("button-secondary");
+
+        // ActionEvent: Resets filters
         resetBtn.setOnAction(e -> {
             startDatePicker.setValue(null);
             endDatePicker.setValue(null);
@@ -129,43 +133,43 @@ public class BookingManagementView {
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         idCol.setPrefWidth(50);
 
-        TableColumn<Booking, String> userCol = new TableColumn<>("👤 Customer");
+        TableColumn<Booking, String> userCol = new TableColumn<>("Customer");
         userCol.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().getCustomerName() + " (@" + cellData.getValue().getUsername() + ")"));
-        userCol.setPrefWidth(160);
+                new SimpleStringProperty(cellData.getValue().getCustomerName() + " (" + cellData.getValue().getUsername() + ")"));
+        userCol.setPrefWidth(150);
 
-        TableColumn<Booking, String> movieCol = new TableColumn<>("🎬 Movie");
+        TableColumn<Booking, String> movieCol = new TableColumn<>("Movie");
         movieCol.setCellValueFactory(new PropertyValueFactory<>("movieTitle"));
-        movieCol.setPrefWidth(150);
+        movieCol.setPrefWidth(140);
 
-        TableColumn<Booking, String> screenCol = new TableColumn<>("🏛 Auditorium");
+        TableColumn<Booking, String> screenCol = new TableColumn<>("Auditorium");
         screenCol.setCellValueFactory(new PropertyValueFactory<>("screenName"));
         screenCol.setPrefWidth(120);
 
-        TableColumn<Booking, String> showtimeCol = new TableColumn<>("🕒 Showtime");
+        TableColumn<Booking, String> showtimeCol = new TableColumn<>("Showtime");
         showtimeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedShowtimeStart()));
         showtimeCol.setPrefWidth(130);
 
-        TableColumn<Booking, String> seatsCol = new TableColumn<>("🎟 Seats");
+        TableColumn<Booking, String> seatsCol = new TableColumn<>("Seats");
         seatsCol.setCellValueFactory(new PropertyValueFactory<>("seatNumbers"));
-        seatsCol.setPrefWidth(95);
+        seatsCol.setPrefWidth(100);
 
-        TableColumn<Booking, String> amountCol = new TableColumn<>("💵 Total Paid");
+        TableColumn<Booking, String> amountCol = new TableColumn<>("Total Amount");
         amountCol.setCellValueFactory(cellData -> new SimpleStringProperty("₹ " + cellData.getValue().getTotalAmount().toPlainString()));
-        amountCol.setPrefWidth(100);
+        amountCol.setPrefWidth(95);
 
-        TableColumn<Booking, String> payCol = new TableColumn<>("💳 Payment");
+        TableColumn<Booking, String> payCol = new TableColumn<>("Payment");
         payCol.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getPaymentMethod() != null ? cellData.getValue().getPaymentMethod().name() : "N/A"));
-        payCol.setPrefWidth(85);
+        payCol.setPrefWidth(80);
 
-        TableColumn<Booking, String> statusCol = new TableColumn<>("⚡ Status");
+        TableColumn<Booking, String> statusCol = new TableColumn<>("Status");
         statusCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getStatus().name()));
-        statusCol.setPrefWidth(95);
+        statusCol.setPrefWidth(90);
 
-        TableColumn<Booking, String> timeCol = new TableColumn<>("📅 Booked At");
+        TableColumn<Booking, String> timeCol = new TableColumn<>("Booked At");
         timeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedBookingTime()));
-        timeCol.setPrefWidth(135);
+        timeCol.setPrefWidth(130);
 
         table.getColumns().addAll(idCol, userCol, movieCol, screenCol, showtimeCol, seatsCol, amountCol, payCol, statusCol, timeCol);
 

@@ -31,8 +31,8 @@ public class Main extends Application {
             }
         });
 
-        // Launch into the Authentication Login View
-        NavigationManager.showLoginView();
+        // Launch into the SaaS Landing Page
+        NavigationManager.showLandingView();
     }
 
     public static void main(String[] args) {

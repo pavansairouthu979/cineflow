@@ -3,6 +3,7 @@ package com.cineflow.ui.common;
 import com.cineflow.model.User;
 import com.cineflow.service.AuthService;
 import com.cineflow.ui.admin.AdminDashboardView;
+import com.cineflow.ui.auth.LandingView;
 import com.cineflow.ui.auth.LoginView;
 import com.cineflow.ui.auth.RegistrationView;
 import com.cineflow.ui.customer.CustomerDashboardView;
@@ -12,12 +13,19 @@ import javafx.stage.Stage;
 
 /**
  * Manages screen transitions and role-based navigation across the application.
+ *
+ * Entry order:
+ *   LandingView  →  LoginView / RegistrationView  →  Dashboard
  */
 public class NavigationManager {
 
     private static Stage primaryStage;
-    private static final int DEFAULT_WIDTH = 1000;
-    private static final int DEFAULT_HEIGHT = 700;
+    private static final int LANDING_W  = 1100;
+    private static final int LANDING_H  = 760;
+    private static final int AUTH_W     = 960;
+    private static final int AUTH_H     = 700;
+    private static final int DEFAULT_W  = 1060;
+    private static final int DEFAULT_H  = 720;
 
     public static void setPrimaryStage(Stage stage) {
         primaryStage = stage;
@@ -27,71 +35,54 @@ public class NavigationManager {
         return primaryStage;
     }
 
-    /**
-     * Navigates to the Login screen.
-     */
+    /** Application entry point — SaaS landing page. */
+    public static void showLandingView() {
+        LandingView landingView = new LandingView();
+        switchScene(landingView.getView(), "CineFlow — Premium Cinema Booking", LANDING_W, LANDING_H);
+    }
+
+    /** Navigate to login. */
     public static void showLoginView() {
         LoginView loginView = new LoginView();
-        switchScene(loginView.getView(), "CineFlow - Sign In", 920, 680);
+        switchScene(loginView.getView(), "CineFlow — Sign In", AUTH_W, AUTH_H);
     }
 
-    /**
-     * Navigates to the Customer Registration screen.
-     */
+    /** Navigate to registration. */
     public static void showRegistrationView() {
         RegistrationView registrationView = new RegistrationView();
-        switchScene(registrationView.getView(), "CineFlow - Customer Registration", 920, 720);
+        switchScene(registrationView.getView(), "CineFlow — Create Account", AUTH_W, 740);
     }
 
-    /**
-     * Navigates to the appropriate dashboard based on user role.
-     *
-     * @param user authenticated user
-     */
+    /** Route after successful login based on role. */
     public static void showDashboard(User user) {
-        if (user == null) {
-            showLoginView();
-            return;
-        }
-
-        if (user.isAdmin()) {
-            showAdminDashboard(user);
-        } else {
-            showCustomerDashboard(user);
-        }
+        if (user == null) { showLandingView(); return; }
+        if (user.isAdmin()) showAdminDashboard(user);
+        else                showCustomerDashboard(user);
     }
 
-    /**
-     * Navigates to the Admin Dashboard.
-     */
     public static void showAdminDashboard(User adminUser) {
         AdminDashboardView adminView = new AdminDashboardView(adminUser);
-        switchScene(adminView.getView(), "CineFlow - Admin Console (" + adminUser.getFullName() + ")", DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        switchScene(adminView.getView(),
+                "CineFlow — Admin Console  (" + adminUser.getFullName() + ")",
+                DEFAULT_W, DEFAULT_H);
     }
 
-    /**
-     * Navigates to the Customer Dashboard.
-     */
     public static void showCustomerDashboard(User customerUser) {
         CustomerDashboardView customerView = new CustomerDashboardView(customerUser);
-        switchScene(customerView.getView(), "CineFlow - Customer Portal (" + customerUser.getFullName() + ")", DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        switchScene(customerView.getView(),
+                "CineFlow — " + customerUser.getFullName(),
+                DEFAULT_W, DEFAULT_H);
     }
 
-    /**
-     * Logs out the current user and returns to the Login view.
-     */
+    /** Logout → back to landing page. */
     public static void logout() {
         AuthService.logout();
-        showLoginView();
+        showLandingView();
     }
 
-    /**
-     * Helper to set root on active scene or create a new scene with stylesheet applied.
-     */
+    /** Resize window and swap the scene root. */
     private static void switchScene(Parent root, String title, int width, int height) {
-        if (primaryStage == null) {
-            return;
-        }
+        if (primaryStage == null) return;
 
         primaryStage.setTitle(title);
         Scene scene = primaryStage.getScene();
@@ -101,6 +92,9 @@ public class NavigationManager {
             applyStyles(scene);
             primaryStage.setScene(scene);
         } else {
+            // Resize then swap root
+            primaryStage.setWidth(width);
+            primaryStage.setHeight(height);
             scene.setRoot(root);
         }
 
@@ -121,4 +115,3 @@ public class NavigationManager {
         }
     }
 }
-

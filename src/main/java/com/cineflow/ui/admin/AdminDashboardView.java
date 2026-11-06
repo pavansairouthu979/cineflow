@@ -1,10 +1,9 @@
 package com.cineflow.ui.admin;
 
 import com.cineflow.model.User;
-import com.cineflow.service.MovieService;
 import com.cineflow.service.ReportService;
-import com.cineflow.service.ScreenService;
 import com.cineflow.ui.common.NavigationManager;
+import javafx.animation.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -12,85 +11,91 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * Apple macOS Liquid Glass Administrator Console.
- * Features an executive floating segmented pill navigation bar,
- * live KPI metric cards, and integrated management sub-modules.
+ * CineFlow — Premium Admin Console.
+ * Cinematic navigation bar, animated KPI stat cards, and full management TabPane.
  */
 public class AdminDashboardView {
 
     private final User adminUser;
-    private final ReportService reportService;
-    private final MovieService movieService;
-    private final ScreenService screenService;
-
-    private StackPane contentArea;
-    private final List<Button> tabButtons = new ArrayList<>();
-
-    // Child views
-    private MovieManagementView movieView;
-    private ScreenManagementView screenView;
-    private ShowtimeManagementView showtimeView;
-    private BookingManagementView bookingView;
-    private ReportView reportView;
 
     public AdminDashboardView(User adminUser) {
         this.adminUser = adminUser;
-        this.reportService = new ReportService();
-        this.movieService = new MovieService();
-        this.screenService = new ScreenService();
     }
 
     public Parent getView() {
         BorderPane root = new BorderPane();
         root.getStyleClass().add("app-container");
 
-        // Top Area: macOS Top Bar + Floating Segmented Pill Tab Bar
-        VBox topContainer = new VBox(10);
-        topContainer.getChildren().addAll(createTopNav(), createSegmentedTabBar());
-        root.setTop(topContainer);
+        // Top navigation
+        VBox topNav = createTopNav();
+        root.setTop(topNav);
 
-        // Center Content Area: StackPane switching views dynamically
-        contentArea = new StackPane();
-        VBox.setVgrow(contentArea, Priority.ALWAYS);
-        root.setCenter(contentArea);
+        // Center TabPane
+        TabPane tabPane = new TabPane();
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        tabPane.getStyleClass().add("card");
 
-        // Initialize child views
-        movieView = new MovieManagementView();
-        screenView = new ScreenManagementView();
-        showtimeView = new ShowtimeManagementView();
-        bookingView = new BookingManagementView();
-        reportView = new ReportView();
+        Tab overviewTab  = new Tab("  Dashboard  ", createOverviewContent(tabPane));
+        Tab movieTab     = new Tab("  Movies  ");
+        Tab screenTab    = new Tab("  Screens & Seats  ");
+        Tab showtimeTab  = new Tab("  Showtimes  ");
+        Tab bookingTab   = new Tab("  All Bookings  ");
+        Tab reportTab    = new Tab("  Analytics  ");
 
-        // Default: Show Overview Tab (Index 0)
-        selectTab(0);
+        MovieManagementView movieView       = new MovieManagementView();
+        ScreenManagementView screenView     = new ScreenManagementView();
+        ShowtimeManagementView showtimeView = new ShowtimeManagementView();
+        BookingManagementView bookingView   = new BookingManagementView();
+        ReportView reportView               = new ReportView();
+
+        movieTab.setContent(movieView.getView());
+        screenTab.setContent(screenView.getView());
+        showtimeTab.setContent(showtimeView.getView());
+        bookingTab.setContent(bookingView.getView());
+        reportTab.setContent(reportView.getView());
+
+        tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            if (newTab == movieTab)    movieView.refreshTable();
+            if (newTab == screenTab)   screenView.refreshTable();
+            if (newTab == showtimeTab) showtimeView.refreshTable();
+            if (newTab == bookingTab)  bookingView.applyFilters();
+            if (newTab == reportTab)   reportView.loadAllReportData();
+        });
+
+        tabPane.getTabs().addAll(overviewTab, movieTab, screenTab, showtimeTab, bookingTab, reportTab);
+        root.setCenter(tabPane);
 
         // Footer
-        HBox footer = createFooter();
-        root.setBottom(footer);
-
+        root.setBottom(createFooter());
         return root;
     }
 
+    /* ---------------------------------------------------------------- */
+    /* TOP NAV                                                            */
+    /* ---------------------------------------------------------------- */
     private VBox createTopNav() {
-        VBox header = new VBox(6);
-        header.setPadding(new Insets(12, 28, 12, 28));
-        header.setStyle("-fx-background-color: rgba(16, 20, 32, 0.85); -fx-border-color: rgba(255, 255, 255, 0.12); -fx-border-width: 0 0 1px 0; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 12, 0, 0, 4);");
+        VBox header = new VBox();
+        header.getStyleClass().add("nav-bar");
+        header.setPadding(new Insets(0, 28, 0, 28));
 
-        HBox row = new HBox(16);
+        HBox row = new HBox(18);
         row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(14, 0, 14, 0));
 
-        // Apple macOS Window Controls (Traffic Light Dots)
-        HBox trafficLights = new HBox(6);
+        // macOS traffic lights
+        HBox trafficLights = new HBox(7);
         trafficLights.setAlignment(Pos.CENTER_LEFT);
-        Circle redDot = new Circle(5.5, Color.web("#ff5f56"));
-        Circle yellowDot = new Circle(5.5, Color.web("#ffbd2e"));
-        Circle greenDot = new Circle(5.5, Color.web("#27c93f"));
+        Circle redDot    = new Circle(5.5, Color.web("#FF5F56"));
+        Circle yellowDot = new Circle(5.5, Color.web("#FFBD2E"));
+        Circle greenDot  = new Circle(5.5, Color.web("#27C93F"));
         trafficLights.getChildren().addAll(redDot, yellowDot, greenDot);
 
         Label brandLabel = new Label("CINEFLOW");
@@ -99,238 +104,274 @@ public class AdminDashboardView {
 
         Label adminPill = new Label("ADMIN CONSOLE");
         adminPill.getStyleClass().add("badge-warning");
-        adminPill.setStyle("-fx-font-size: 10px; -fx-padding: 3px 8px;");
+        adminPill.setStyle("-fx-font-size: 10px;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox userBox = new HBox(10);
+        // Admin user info
+        HBox userBox = new HBox(12);
         userBox.setAlignment(Pos.CENTER);
-        Label userLabel = new Label("Admin: " + adminUser.getFullName() + " (@" + adminUser.getUsername() + ")");
-        userLabel.getStyleClass().add("text-subtitle");
-        userLabel.setStyle("-fx-text-fill: #e4e4e7; -fx-font-weight: 600;");
+
+        Circle avatarBg = new Circle(17);
+        avatarBg.setFill(Color.web("#F59E0B", 0.22));
+        avatarBg.setStroke(Color.web("#F59E0B", 0.50));
+        avatarBg.setStrokeWidth(1.5);
+        Label avatarInit = new Label(adminUser.getFullName().substring(0, 1).toUpperCase());
+        avatarInit.setStyle("-fx-font-size: 13px; -fx-font-weight: 800; -fx-text-fill: #FCD34D;");
+        StackPane avatar = new StackPane(avatarBg, avatarInit);
+        avatar.setMaxSize(34, 34);
+
+        VBox userMeta = new VBox(1);
+        Label nameLbl = new Label(adminUser.getFullName());
+        nameLbl.setStyle("-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #E2E8F0;");
+        Label roleLbl = new Label("@" + adminUser.getUsername() + "  •  ADMIN");
+        roleLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #6B7280;");
+        userMeta.getChildren().addAll(nameLbl, roleLbl);
 
         Button logoutBtn = new Button("Log Out");
         logoutBtn.getStyleClass().add("button-secondary");
-        logoutBtn.setStyle("-fx-font-size: 12px; -fx-padding: 6px 14px; -fx-background-radius: 14px;");
-
-        // ActionEvent: Logs out admin and returns to Login screen
+        logoutBtn.setStyle("-fx-font-size: 12px; -fx-padding: 6px 14px;");
         logoutBtn.setOnAction(e -> NavigationManager.logout());
 
-        userBox.getChildren().addAll(userLabel, logoutBtn);
+        userBox.getChildren().addAll(avatar, userMeta, logoutBtn);
         row.getChildren().addAll(trafficLights, brandLabel, adminPill, spacer, userBox);
-
         header.getChildren().add(row);
         return header;
     }
 
-    /**
-     * Apple macOS Floating Segmented Navigation Bar.
-     */
-    private HBox createSegmentedTabBar() {
-        HBox barContainer = new HBox();
-        barContainer.setAlignment(Pos.CENTER);
-        barContainer.setPadding(new Insets(4, 20, 8, 20));
+    /* ---------------------------------------------------------------- */
+    /* OVERVIEW CONTENT                                                   */
+    /* ---------------------------------------------------------------- */
+    private Parent createOverviewContent(TabPane tabPane) {
+        VBox content = new VBox(28);
+        content.setPadding(new Insets(28));
 
-        HBox pillBar = new HBox(6);
-        pillBar.setAlignment(Pos.CENTER);
-        pillBar.getStyleClass().add("admin-tab-bar");
+        // Welcome banner
+        VBox welcomeBanner = createWelcomeBanner();
+        content.getChildren().add(welcomeBanner);
 
-        String[] tabTitles = {
-                "📊 Overview",
-                "🎬 Movies",
-                "🏛 Screens & Seats",
-                "🕒 Showtimes",
-                "📋 All Bookings",
-                "📈 Analytics & Reports"
-        };
+        // KPI stat cards row
+        HBox statsRow = createKpiStatsRow();
+        content.getChildren().add(statsRow);
 
-        for (int i = 0; i < tabTitles.length; i++) {
-            final int tabIndex = i;
-            Button btn = new Button(tabTitles[i]);
-            btn.getStyleClass().add("admin-tab-button");
-            btn.setOnAction(e -> selectTab(tabIndex));
-            tabButtons.add(btn);
-            pillBar.getChildren().add(btn);
-        }
+        // Quick action cards
+        Label quickActionsTitle = new Label("Quick Actions");
+        quickActionsTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: #F8FAFC;");
+        content.getChildren().add(quickActionsTitle);
 
-        barContainer.getChildren().add(pillBar);
-        return barContainer;
-    }
-
-    public void selectTab(int index) {
-        // Update tab pill button styles
-        for (int i = 0; i < tabButtons.size(); i++) {
-            Button btn = tabButtons.get(i);
-            if (i == index) {
-                btn.getStyleClass().remove("admin-tab-button");
-                if (!btn.getStyleClass().contains("admin-tab-button-active")) {
-                    btn.getStyleClass().add("admin-tab-button-active");
-                }
-            } else {
-                btn.getStyleClass().remove("admin-tab-button-active");
-                if (!btn.getStyleClass().contains("admin-tab-button")) {
-                    btn.getStyleClass().add("admin-tab-button");
-                }
-            }
-        }
-
-        // Switch view and trigger dynamic data refresh
-        contentArea.getChildren().clear();
-        switch (index) {
-            case 0 -> contentArea.getChildren().add(createOverviewContent());
-            case 1 -> {
-                movieView.refreshTable();
-                contentArea.getChildren().add(movieView.getView());
-            }
-            case 2 -> {
-                screenView.refreshTable();
-                contentArea.getChildren().add(screenView.getView());
-            }
-            case 3 -> {
-                showtimeView.refreshTable();
-                contentArea.getChildren().add(showtimeView.getView());
-            }
-            case 4 -> {
-                bookingView.applyFilters();
-                contentArea.getChildren().add(bookingView.getView());
-            }
-            case 5 -> {
-                reportView.loadAllReportData();
-                contentArea.getChildren().add(reportView.getView());
-            }
-        }
-    }
-
-    private Parent createOverviewContent() {
-        VBox content = new VBox(22);
-        content.setPadding(new Insets(20, 28, 24, 28));
-        content.setAlignment(Pos.TOP_CENTER);
-
-        // Welcome Banner Card
-        VBox welcomeCard = new VBox(10);
-        welcomeCard.getStyleClass().add("card");
-        welcomeCard.setMaxWidth(1020);
-
-        HBox titleRow = new HBox(12);
-        titleRow.setAlignment(Pos.CENTER_LEFT);
-        Label welcomeTitle = new Label("Welcome back, " + adminUser.getFullName() + "!");
-        welcomeTitle.getStyleClass().add("title-large");
-        Label roleBadge = new Label("ROLE: SYSTEM ADMINISTRATOR");
-        roleBadge.getStyleClass().add("badge-warning");
-        titleRow.getChildren().addAll(welcomeTitle, roleBadge);
-
-        Label desc = new Label("You have full executive control over multiplex auditoriums, screening schedules, catalog titles, and real-time customer reservations.");
-        desc.getStyleClass().add("text-body");
-        welcomeCard.getChildren().addAll(titleRow, desc);
-
-        // 4 Glowing KPI Metric Cards
-        HBox kpiRow = createKpiCardsRow();
-        kpiRow.setMaxWidth(1020);
-
-        // Quick Navigation Action Cards
         GridPane grid = new GridPane();
         grid.setHgap(18);
         grid.setVgap(18);
-        grid.setMaxWidth(1020);
+        grid.setMaxWidth(Double.MAX_VALUE);
 
-        grid.add(createActionCard("🎬 Movie Catalog", "Add new titles, edit ratings, toggle active status.", "Open Movies", () -> selectTab(1)), 0, 0);
-        grid.add(createActionCard("🏛 Screens & Seat Matrices", "Configure auditoriums and preview seat layouts.", "Open Screens", () -> selectTab(2)), 1, 0);
-        grid.add(createActionCard("🕒 Showtime Scheduling", "Schedule screenings with automatic overlap validation.", "Open Showtimes", () -> selectTab(3)), 0, 1);
-        grid.add(createActionCard("📈 Analytics & Reports", "View 7-day revenue charts, top movies, and download CSVs.", "Open Reports", () -> selectTab(5)), 1, 1);
+        grid.add(createActionCard("🎬", "Movie Catalog",
+                "Add, edit, search and manage movie titles with genre, language and rating details.",
+                "Manage Movies", () -> tabPane.getSelectionModel().select(1)), 0, 0);
 
-        content.getChildren().addAll(welcomeCard, kpiRow, grid);
+        grid.add(createActionCard("🏛", "Screens & Seating",
+                "Configure multiplex auditoriums and auto-generate seat row matrices.",
+                "Manage Screens", () -> tabPane.getSelectionModel().select(2)), 1, 0);
+
+        grid.add(createActionCard("🕒", "Showtime Scheduling",
+                "Schedule screenings with real-time overlap detection and conflict prevention.",
+                "Manage Showtimes", () -> tabPane.getSelectionModel().select(3)), 0, 1);
+
+        grid.add(createActionCard("📋", "Booking Records",
+                "View and filter all customer bookings with date, movie, and status filters.",
+                "View Bookings", () -> tabPane.getSelectionModel().select(4)), 1, 1);
+
+        grid.add(createActionCard("📊", "Analytics & Reports",
+                "Revenue charts, top movie breakdowns, occupancy rates, and CSV export.",
+                "Open Analytics", () -> tabPane.getSelectionModel().select(5)), 0, 2);
+
+        grid.getColumnConstraints().addAll(
+                constraintPercent(50),
+                constraintPercent(50)
+        );
+
+        content.getChildren().add(grid);
 
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
         return scroll;
     }
 
-    private HBox createKpiCardsRow() {
-        HBox row = new HBox(16);
-        row.setAlignment(Pos.CENTER);
+    private ColumnConstraints constraintPercent(double pct) {
+        ColumnConstraints cc = new ColumnConstraints();
+        cc.setPercentWidth(pct);
+        return cc;
+    }
 
-        BigDecimal totalRev = BigDecimal.ZERO;
-        int activeMovies = 0;
-        int totalScreens = 0;
+    /* ---------------------------------------------------------------- */
+    /* WELCOME BANNER                                                     */
+    /* ---------------------------------------------------------------- */
+    private VBox createWelcomeBanner() {
+        VBox banner = new VBox(8);
+        banner.setStyle(
+            "-fx-background-color: linear-gradient(to right, rgba(139,92,246,0.18), rgba(0,194,255,0.08), transparent);" +
+            "-fx-background-radius: 16px;" +
+            "-fx-border-color: rgba(139,92,246,0.30);" +
+            "-fx-border-radius: 16px; -fx-border-width: 1px;" +
+            "-fx-padding: 22px 28px;"
+        );
+
+        HBox titleRow = new HBox(12);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label welcomeTitle = new Label("Welcome back, " + adminUser.getFullName() + "!");
+        welcomeTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #F8FAFC;");
+
+        Label roleBadge = new Label("ADMIN");
+        roleBadge.getStyleClass().add("badge-warning");
+        roleBadge.setStyle("-fx-font-size: 12px;");
+
+        titleRow.getChildren().addAll(welcomeTitle, roleBadge);
+
+        Label desc = new Label(
+            "Full administrative control — manage the movie catalog, configure auditorium seating, " +
+            "schedule screenings, review customer reservations, and analyze revenue performance."
+        );
+        desc.setStyle("-fx-font-size: 13px; -fx-text-fill: #A1A1AA; -fx-line-spacing: 2px;");
+        desc.setWrapText(true);
+
+        banner.getChildren().addAll(titleRow, desc);
+
+        // Animate entrance
+        banner.setOpacity(0);
+        FadeTransition ft = new FadeTransition(Duration.millis(600), banner);
+        ft.setToValue(1.0);
+        ft.setDelay(Duration.millis(100));
+        ft.play();
+
+        return banner;
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* KPI STAT CARDS                                                     */
+    /* ---------------------------------------------------------------- */
+    private HBox createKpiStatsRow() {
+        HBox row = new HBox(16);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        // Try to load real stats
+        ReportService reportService = new ReportService();
+        String totalRevenue = "—";
+        String todayBookings = "—";
 
         try {
-            totalRev = reportService.getTotalRevenue();
-            activeMovies = movieService.getAllMovies().size();
-            totalScreens = screenService.getAllScreens().size();
-        } catch (Exception ignored) {}
+            BigDecimal rev = reportService.getTotalRevenue();
+            totalRevenue = "₹ " + rev.toPlainString();
+            int todayCount = reportService.getTodayBookingsCount();
+            todayBookings = String.valueOf(todayCount);
+        } catch (SQLException ignored) {}
 
-        row.getChildren().addAll(
-                createKpiCard("💰 TOTAL REVENUE", "₹ " + totalRev.toPlainString(), "emerald", "+14.2% this week"),
-                createKpiCard("🎬 ACTIVE MOVIES", String.valueOf(activeMovies) + " Titles", "blue", "Now Showing"),
-                createKpiCard("🏛 AUDITORIUMS", String.valueOf(totalScreens) + " Screens", "purple", "64 Total Seats"),
-                createKpiCard("🔒 SYSTEM SECURITY", "Active", "amber", "Salted SHA-256")
-        );
+        VBox revCard = createStatCard("Total Revenue", totalRevenue, "#22C55E", "💰");
+        VBox todayCard = createStatCard("Today's Bookings", todayBookings, "#00C2FF", "🎟");
+        VBox moviesCard = createStatCard("Active Platform", "CineFlow", "#8B5CF6", "🎬");
+        VBox roleCard = createStatCard("Session Role", "Administrator", "#F59E0B", "🔐");
+
+        HBox.setHgrow(revCard, Priority.ALWAYS);
+        HBox.setHgrow(todayCard, Priority.ALWAYS);
+        HBox.setHgrow(moviesCard, Priority.ALWAYS);
+        HBox.setHgrow(roleCard, Priority.ALWAYS);
+
+        row.getChildren().addAll(revCard, todayCard, moviesCard, roleCard);
+
+        // Stagger entrance
+        List<VBox> cards = Arrays.asList(revCard, todayCard, moviesCard, roleCard);
+        for (int i = 0; i < cards.size(); i++) {
+            VBox card = cards.get(i);
+            card.setOpacity(0);
+            card.setTranslateY(14);
+            FadeTransition ft = new FadeTransition(Duration.millis(450), card);
+            ft.setToValue(1.0);
+            ft.setDelay(Duration.millis(200 + i * 80L));
+            ft.play();
+            TranslateTransition tt = new TranslateTransition(Duration.millis(450), card);
+            tt.setToY(0);
+            tt.setDelay(Duration.millis(200 + i * 80L));
+            tt.setInterpolator(Interpolator.EASE_OUT);
+            tt.play();
+        }
 
         return row;
     }
 
-    private VBox createKpiCard(String label, String value, String theme, String subtext) {
-        VBox card = new VBox(6);
-        card.getStyleClass().add("kpi-card");
-        HBox.setHgrow(card, Priority.ALWAYS);
-        card.setMinWidth(220);
+    private VBox createStatCard(String label, String value, String accentColor, String icon) {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("stat-card");
 
-        Label lbl = new Label(label);
-        lbl.getStyleClass().add("text-subtitle");
-        lbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #98989d;");
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 22px;");
 
-        Label val = new Label(value);
-        val.getStyleClass().add("title-large");
+        Label valueLbl = new Label(value);
+        valueLbl.setStyle(
+            "-fx-font-size: 22px; -fx-font-weight: 900; -fx-text-fill: " + accentColor + ";" +
+            "-fx-effect: dropshadow(gaussian, " + accentColor + "44, 8, 0, 0, 0);"
+        );
 
-        String textColor = switch (theme) {
-            case "emerald" -> "#34c759";
-            case "purple" -> "#af52de";
-            case "amber" -> "#ffd60a";
-            default -> "#0A84FF";
-        };
-        val.setStyle("-fx-text-fill: " + textColor + "; -fx-font-size: 22px;");
+        Label labelLbl = new Label(label.toUpperCase());
+        labelLbl.setStyle("-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #6B7280; -fx-letter-spacing: 0.5px;");
 
-        Label sub = new Label("● " + subtext);
-        sub.setStyle("-fx-font-size: 11px; -fx-text-fill: #86868b;");
-
-        card.getChildren().addAll(lbl, val, sub);
+        card.getChildren().addAll(iconLbl, valueLbl, labelLbl);
         return card;
     }
 
-    private VBox createActionCard(String title, String desc, String btnText, Runnable action) {
+    /* ---------------------------------------------------------------- */
+    /* ACTION CARD                                                        */
+    /* ---------------------------------------------------------------- */
+    private VBox createActionCard(String icon, String title, String desc, String btnText, Runnable action) {
         VBox card = new VBox(10);
         card.getStyleClass().add("card");
-        card.setPrefWidth(480);
+        card.setPadding(new Insets(20));
 
+        HBox titleRow = new HBox(10);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 20px;");
         Label titleLbl = new Label(title);
-        titleLbl.getStyleClass().add("title-small");
-        titleLbl.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        titleLbl.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: #F8FAFC;");
+        titleRow.getChildren().addAll(iconLbl, titleLbl);
 
         Label descLbl = new Label(desc);
-        descLbl.getStyleClass().add("text-body");
-        descLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #a1a1aa;");
+        descLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #A1A1AA; -fx-line-spacing: 2px;");
+        descLbl.setWrapText(true);
 
-        Button actionBtn = new Button(btnText + " →");
-        actionBtn.getStyleClass().add("button-primary");
-        actionBtn.setOnAction(e -> action.run());
+        Button btn = new Button(btnText + "  →");
+        btn.getStyleClass().add("button-primary");
+        btn.setStyle("-fx-font-size: 13px; -fx-padding: 9px 18px;");
+        btn.setOnAction(e -> action.run());
 
-        card.getChildren().addAll(titleLbl, descLbl, actionBtn);
+        card.getChildren().addAll(titleRow, descLbl, btn);
 
-        card.setOnMouseEntered(e -> card.setStyle("-fx-translate-y: -3px; -fx-border-color: rgba(10, 132, 255, 0.5);"));
+        card.setOnMouseEntered(e -> card.setStyle(
+            "-fx-background-color: rgba(21,19,35,0.95);" +
+            "-fx-background-radius: 16px;" +
+            "-fx-border-color: rgba(139,92,246,0.60);" +
+            "-fx-border-width: 1px; -fx-border-radius: 16px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(139,92,246,0.35), 22, 0, 0, 8);" +
+            "-fx-padding: 20px; -fx-translate-y: -2px;"
+        ));
         card.setOnMouseExited(e -> card.setStyle(""));
 
         return card;
     }
 
+    /* ---------------------------------------------------------------- */
+    /* FOOTER                                                             */
+    /* ---------------------------------------------------------------- */
     private HBox createFooter() {
         HBox footer = new HBox();
         footer.setPadding(new Insets(10, 30, 10, 30));
         footer.setAlignment(Pos.CENTER_RIGHT);
-        footer.setStyle("-fx-background-color: rgba(12, 15, 24, 0.9); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-width: 1px 0 0 0;");
-
-        Label label = new Label("CineFlow Administrator Console • Apple Liquid Glass Edition • MySQL 8.x");
+        footer.setStyle(
+            "-fx-background-color: rgba(9,9,15,0.92);" +
+            "-fx-border-color: rgba(139,92,246,0.10);" +
+            "-fx-border-width: 1px 0 0 0;"
+        );
+        Label label = new Label("CineFlow Admin Console  ✦  JavaFX 21  ✦  MySQL 8.x  ✦  Pure JDBC");
         label.getStyleClass().add("text-muted");
         footer.getChildren().add(label);
         return footer;
