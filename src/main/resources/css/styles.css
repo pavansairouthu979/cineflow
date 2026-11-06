@@ -8,33 +8,37 @@
 .root {
     -fx-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", "Helvetica Neue", sans-serif;
     -fx-font-size: 14px;
-    -fx-background-color: #080a12;
+    -fx-background-color: #07090e;
     -fx-text-fill: #f5f5f7;
 }
 
-/* Background Canvas with Deep Mesh Ambient Blooms */
+/* Background Canvas with Deep Mesh Ambient Blooms (Apple Studio) */
 .app-container {
-    -fx-background-color: linear-gradient(to bottom right, #090c16 0%, #0d1222 45%, #14172e 100%);
+    -fx-background-color: 
+        radial-gradient(center 22% 0%, radius 70%, rgba(10, 132, 255, 0.12), transparent),
+        radial-gradient(center 80% 100%, radius 65%, rgba(175, 82, 222, 0.09), transparent),
+        radial-gradient(center 50% 50%, radius 50%, rgba(94, 92, 230, 0.05), transparent),
+        linear-gradient(to bottom, #07090e 0%, #0a0d18 45%, #0f1324 100%);
 }
 
 /* Apple Liquid Glass Cards & Surface Containers */
 .card {
-    -fx-background-color: linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(16, 21, 36, 0.82);
-    -fx-background-radius: 18px;
-    -fx-border-color: linear-gradient(to bottom right, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.10) 45%, rgba(255, 255, 255, 0.03) 100%);
+    -fx-background-color: linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(16, 21, 38, 0.85);
+    -fx-background-radius: 20px;
+    -fx-border-color: linear-gradient(to bottom right, rgba(255, 255, 255, 0.30) 0%, rgba(255, 255, 255, 0.11) 45%, rgba(255, 255, 255, 0.03) 100%);
     -fx-border-width: 1px;
-    -fx-border-radius: 18px;
+    -fx-border-radius: 20px;
     -fx-padding: 24px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 22, 0, 0, 8);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 24, 0, 0, 8);
 }
 
 .card:hover {
-    -fx-border-color: linear-gradient(to bottom right, rgba(255, 255, 255, 0.40) 0%, rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.06) 100%);
+    -fx-border-color: linear-gradient(to bottom right, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0.07) 100%);
 }
 
 .card-header {
     -fx-background-color: rgba(255, 255, 255, 0.06);
-    -fx-background-radius: 17px 17px 0 0;
+    -fx-background-radius: 19px 19px 0 0;
     -fx-padding: 16px 22px;
     -fx-border-color: rgba(255, 255, 255, 0.10);
     -fx-border-width: 0 0 1px 0;
@@ -82,6 +86,64 @@
     -fx-text-fill: linear-gradient(to right, #0A84FF, #5E5CE6, #BF5AF2);
     -fx-letter-spacing: 0.5px;
     -fx-effect: dropshadow(gaussian, rgba(94, 92, 230, 0.45), 14, 0, 0, 2);
+}
+
+/* Apple Floating Segmented Navigation Bar (Admin Console) */
+.admin-tab-bar {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-border-color: rgba(255, 255, 255, 0.14);
+    -fx-border-width: 1px;
+    -fx-background-radius: 26px;
+    -fx-border-radius: 26px;
+    -fx-padding: 5px 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 16, 0, 0, 4);
+}
+
+.admin-tab-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #a1a1aa;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-padding: 8px 18px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+}
+
+.admin-tab-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.10);
+    -fx-text-fill: #ffffff;
+}
+
+.admin-tab-button-active {
+    -fx-background-color: linear-gradient(to bottom, #0A84FF 0%, #0066cc 100%);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: rgba(255, 255, 255, 0.35);
+    -fx-border-width: 1px;
+    -fx-padding: 8px 18px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.65), 14, 0, 0, 4);
+}
+
+/* Executive KPI Metric Cards */
+.kpi-card {
+    -fx-background-color: linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(16, 21, 38, 0.85);
+    -fx-background-radius: 18px;
+    -fx-border-radius: 18px;
+    -fx-border-color: rgba(255, 255, 255, 0.14);
+    -fx-border-width: 1px;
+    -fx-padding: 18px 22px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 18, 0, 0, 6);
+}
+
+.kpi-card:hover {
+    -fx-border-color: rgba(10, 132, 255, 0.50);
+    -fx-translate-y: -2px;
 }
 
 /* Apple Liquid Buttons */
@@ -238,6 +300,28 @@
     -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.50), 10, 0, 0, 0);
 }
 
+/* DatePicker Glass Styling */
+.date-picker {
+    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+}
+
+.date-picker .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.date-picker .arrow-button .arrow {
+    -fx-background-color: #0A84FF;
+}
+
 /* ComboBox Glass Styling */
 .combo-box {
     -fx-background-color: rgba(0, 0, 0, 0.35);
@@ -318,6 +402,64 @@
 .table-cell {
     -fx-text-fill: #f5f5f7;
     -fx-padding: 10px 12px;
+}
+
+/* SplitPane Transparent Divider */
+.split-pane {
+    -fx-background-color: transparent;
+    -fx-box-border: transparent;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-padding: 0 2px;
+}
+
+/* Charts: Apple Glass Dark Styling */
+.chart {
+    -fx-padding: 10px;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
+    -fx-stroke: rgba(255, 255, 255, 0.06);
+}
+
+.axis {
+    -fx-tick-label-fill: #98989d;
+    -fx-font-size: 11px;
+}
+
+.axis:left, .axis:bottom {
+    -fx-border-color: rgba(255, 255, 255, 0.10);
+}
+
+.chart-legend {
+    -fx-background-color: rgba(255, 255, 255, 0.04);
+    -fx-background-radius: 12px;
+    -fx-padding: 8px 14px;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #e5e5ea;
+}
+
+.chart-pie-label {
+    -fx-fill: #f5f5f7;
+    -fx-font-weight: 600;
+}
+
+.chart-bar {
+    -fx-background-color: linear-gradient(to top, #0A84FF 0%, #5E5CE6 100%);
+    -fx-background-radius: 6px 6px 0 0;
+}
+
+.chart-bar:hover {
+    -fx-background-color: linear-gradient(to top, #2191ff 0%, #7c7aed 100%);
+    -fx-effect: dropshadow(gaussian, rgba(10, 132, 255, 0.7), 12, 0, 0, 2);
 }
 
 /* ScrollBar (Apple Minimalist Glass) */

@@ -80,22 +80,22 @@ public class ReportView {
         VBox revCard = new VBox(4);
         revCard.getStyleClass().add("card");
         revCard.setPrefWidth(220);
-        Label revTitle = new Label("TOTAL REVENUE (PAID)");
+        Label revTitle = new Label("💰 TOTAL GROSS REVENUE");
         revTitle.getStyleClass().add("text-subtitle");
         totalRevLabel = new Label("₹ 0.00");
         totalRevLabel.getStyleClass().add("title-large");
-        totalRevLabel.setStyle("-fx-text-fill: #34d399;");
+        totalRevLabel.setStyle("-fx-text-fill: #34c759;");
         revCard.getChildren().addAll(revTitle, totalRevLabel);
 
         // Card 2: Today's Bookings
         VBox todayCard = new VBox(4);
         todayCard.getStyleClass().add("card");
         todayCard.setPrefWidth(220);
-        Label todayTitle = new Label("TODAY'S BOOKINGS");
+        Label todayTitle = new Label("🎟️ TODAY'S RESERVATIONS");
         todayTitle.getStyleClass().add("text-subtitle");
         todayBookingsLabel = new Label("0");
         todayBookingsLabel.getStyleClass().add("title-large");
-        todayBookingsLabel.setStyle("-fx-text-fill: #60a5fa;");
+        todayBookingsLabel.setStyle("-fx-text-fill: #0A84FF;");
         todayCard.getChildren().addAll(todayTitle, todayBookingsLabel);
 
         Region spacer = new Region();
@@ -104,28 +104,24 @@ public class ReportView {
         // CSV Export Actions
         VBox exportBox = new VBox(6);
         exportBox.setAlignment(Pos.CENTER_RIGHT);
-        Label exportTitle = new Label("Export CSV Reports (RFC-4180):");
+        Label exportTitle = new Label("⬇️ Export Official CSV Reports (RFC-4180):");
         exportTitle.getStyleClass().add("text-subtitle");
 
         HBox exportButtons = new HBox(8);
-        Button expBookingsBtn = new Button("Bookings CSV");
+        Button expBookingsBtn = new Button("⬇️ Bookings CSV");
         expBookingsBtn.getStyleClass().add("button-secondary");
-        // ActionEvent: Export bookings CSV
         expBookingsBtn.setOnAction(e -> exportBookings());
 
-        Button expRevenueBtn = new Button("Revenue CSV");
+        Button expRevenueBtn = new Button("⬇️ Revenue CSV");
         expRevenueBtn.getStyleClass().add("button-secondary");
-        // ActionEvent: Export revenue CSV
         expRevenueBtn.setOnAction(e -> exportRevenue());
 
-        Button expSalesBtn = new Button("Ticket Sales CSV");
+        Button expSalesBtn = new Button("⬇️ Ticket Sales CSV");
         expSalesBtn.getStyleClass().add("button-secondary");
-        // ActionEvent: Export ticket sales CSV
         expSalesBtn.setOnAction(e -> exportMovieSales());
 
-        Button expOccupancyBtn = new Button("Occupancy CSV");
+        Button expOccupancyBtn = new Button("⬇️ Occupancy CSV");
         expOccupancyBtn.getStyleClass().add("button-secondary");
-        // ActionEvent: Export occupancy CSV
         expOccupancyBtn.setOnAction(e -> exportOccupancy());
 
         exportButtons.getChildren().addAll(expBookingsBtn, expRevenueBtn, expSalesBtn, expOccupancyBtn);

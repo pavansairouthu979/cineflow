@@ -58,37 +58,33 @@ public class MovieManagementView {
         HBox bar = new HBox(12);
         bar.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label("Movie Catalog Management");
+        Label title = new Label("🎬 Movie Catalog Management");
         title.getStyleClass().add("title-medium");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         searchField = new TextField();
-        searchField.setPromptText("Search by title...");
-        searchField.setPrefWidth(200);
+        searchField.setPromptText("🔍 Search title...");
+        searchField.setPrefWidth(180);
 
         // Property listener: Search-as-you-type filter
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterMovies());
 
         genreFilter = new ComboBox<>(FXCollections.observableArrayList(
-                "ALL", "Action", "Sci-Fi", "Drama", "Comedy", "Thriller", "Animation"
+                "ALL", "Action", "Sci-Fi", "Drama", "Comedy", "Biography", "Thriller", "Animation"
         ));
         genreFilter.setValue("ALL");
 
         // Selection listener: Genre ComboBox filter
         genreFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> filterMovies());
 
-        Button addBtn = new Button("+ Add Movie");
+        Button addBtn = new Button("➕ Add Movie");
         addBtn.getStyleClass().add("button-primary");
-
-        // ActionEvent: Opens dialog to add a new movie
         addBtn.setOnAction(e -> openMovieDialog(null));
 
-        Button editBtn = new Button("Edit");
+        Button editBtn = new Button("✏️ Edit");
         editBtn.getStyleClass().add("button-secondary");
-
-        // ActionEvent: Edits the selected movie
         editBtn.setOnAction(e -> {
             Movie selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
@@ -98,19 +94,19 @@ public class MovieManagementView {
             }
         });
 
-        Button toggleBtn = new Button("Toggle Active");
+        Button toggleBtn = new Button("🔄 Toggle Status");
         toggleBtn.getStyleClass().add("button-secondary");
-
-        // ActionEvent: Toggles movie activation status
         toggleBtn.setOnAction(e -> toggleSelectedMovieActive());
 
-        Button deleteBtn = new Button("Delete");
+        Button deleteBtn = new Button("🗑️ Delete");
         deleteBtn.getStyleClass().add("button-danger");
-
-        // ActionEvent: Deletes selected movie with confirmation
         deleteBtn.setOnAction(e -> deleteSelectedMovie());
 
-        bar.getChildren().addAll(title, spacer, searchField, genreFilter, addBtn, editBtn, toggleBtn, deleteBtn);
+        Button refreshBtn = new Button("🔁 Refresh");
+        refreshBtn.getStyleClass().add("button-secondary");
+        refreshBtn.setOnAction(e -> refreshTable());
+
+        bar.getChildren().addAll(title, spacer, searchField, genreFilter, addBtn, editBtn, toggleBtn, deleteBtn, refreshBtn);
         return bar;
     }
 
@@ -123,27 +119,27 @@ public class MovieManagementView {
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         idCol.setPrefWidth(50);
 
-        TableColumn<Movie, String> titleCol = new TableColumn<>("Title");
+        TableColumn<Movie, String> titleCol = new TableColumn<>("🎬 Title");
         titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
         titleCol.setPrefWidth(180);
 
-        TableColumn<Movie, String> genreCol = new TableColumn<>("Genre");
+        TableColumn<Movie, String> genreCol = new TableColumn<>("🎭 Genre");
         genreCol.setCellValueFactory(new PropertyValueFactory<>("genre"));
         genreCol.setPrefWidth(100);
 
-        TableColumn<Movie, String> langCol = new TableColumn<>("Language");
+        TableColumn<Movie, String> langCol = new TableColumn<>("🌐 Language");
         langCol.setCellValueFactory(new PropertyValueFactory<>("language"));
         langCol.setPrefWidth(90);
 
-        TableColumn<Movie, Integer> durCol = new TableColumn<>("Duration");
+        TableColumn<Movie, Integer> durCol = new TableColumn<>("⏱ Duration");
         durCol.setCellValueFactory(new PropertyValueFactory<>("durationMinutes"));
-        durCol.setPrefWidth(80);
+        durCol.setPrefWidth(85);
 
-        TableColumn<Movie, Double> ratingCol = new TableColumn<>("Rating");
+        TableColumn<Movie, Double> ratingCol = new TableColumn<>("★ Rating");
         ratingCol.setCellValueFactory(new PropertyValueFactory<>("rating"));
-        ratingCol.setPrefWidth(70);
+        ratingCol.setPrefWidth(75);
 
-        TableColumn<Movie, String> dateCol = new TableColumn<>("Release Date");
+        TableColumn<Movie, String> dateCol = new TableColumn<>("📅 Release");
         dateCol.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getReleaseDate() != null ? cellData.getValue().getReleaseDate().toString() : ""));
         dateCol.setPrefWidth(100);

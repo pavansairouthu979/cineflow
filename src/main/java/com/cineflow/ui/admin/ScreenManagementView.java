@@ -82,22 +82,18 @@ public class ScreenManagementView {
         HBox bar = new HBox(12);
         bar.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label("Screen & Seating Layout Management");
+        Label title = new Label("🏛 Auditorium Screens & Seating Layouts");
         title.getStyleClass().add("title-medium");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addBtn = new Button("+ Add Screen");
+        Button addBtn = new Button("➕ Add Screen");
         addBtn.getStyleClass().add("button-primary");
-
-        // ActionEvent: Opens dialog to add a new screen with seats
         addBtn.setOnAction(e -> openAddScreenDialog());
 
-        Button refreshBtn = new Button("Refresh");
+        Button refreshBtn = new Button("🔁 Refresh");
         refreshBtn.getStyleClass().add("button-secondary");
-
-        // ActionEvent: Refreshes the screens list
         refreshBtn.setOnAction(e -> refreshTable());
 
         bar.getChildren().addAll(title, spacer, addBtn, refreshBtn);
@@ -113,7 +109,7 @@ public class ScreenManagementView {
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         idCol.setPrefWidth(50);
 
-        TableColumn<Screen, String> nameCol = new TableColumn<>("Screen Name");
+        TableColumn<Screen, String> nameCol = new TableColumn<>("🏛 Screen Name");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         nameCol.setPrefWidth(160);
 
@@ -125,9 +121,9 @@ public class ScreenManagementView {
         colsCol.setCellValueFactory(new PropertyValueFactory<>("seatsPerRow"));
         colsCol.setPrefWidth(90);
 
-        TableColumn<Screen, Integer> totalCol = new TableColumn<>("Capacity");
+        TableColumn<Screen, Integer> totalCol = new TableColumn<>("💺 Capacity");
         totalCol.setCellValueFactory(new PropertyValueFactory<>("totalSeats"));
-        totalCol.setPrefWidth(80);
+        totalCol.setPrefWidth(90);
 
         table.getColumns().addAll(idCol, nameCol, rowsCol, colsCol, totalCol);
 

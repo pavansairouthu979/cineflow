@@ -66,28 +66,22 @@ public class ShowtimeManagementView {
         HBox bar = new HBox(12);
         bar.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label("Showtime Scheduling & Management");
+        Label title = new Label("🕒 Screening Schedules & Showtimes");
         title.getStyleClass().add("title-medium");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addBtn = new Button("+ Schedule Showtime");
+        Button addBtn = new Button("➕ Schedule Showtime");
         addBtn.getStyleClass().add("button-primary");
-
-        // ActionEvent: Opens dialog to schedule a new showtime
         addBtn.setOnAction(e -> openScheduleDialog());
 
-        Button deleteBtn = new Button("Delete");
+        Button deleteBtn = new Button("🗑️ Cancel Show");
         deleteBtn.getStyleClass().add("button-danger");
-
-        // ActionEvent: Deletes selected showtime
         deleteBtn.setOnAction(e -> deleteSelectedShowtime());
 
-        Button refreshBtn = new Button("Refresh");
+        Button refreshBtn = new Button("🔁 Refresh");
         refreshBtn.getStyleClass().add("button-secondary");
-
-        // ActionEvent: Refreshes showtime list
         refreshBtn.setOnAction(e -> refreshTable());
 
         bar.getChildren().addAll(title, spacer, addBtn, deleteBtn, refreshBtn);
@@ -103,29 +97,29 @@ public class ShowtimeManagementView {
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         idCol.setPrefWidth(50);
 
-        TableColumn<Showtime, String> movieCol = new TableColumn<>("Movie Title");
+        TableColumn<Showtime, String> movieCol = new TableColumn<>("🎬 Movie");
         movieCol.setCellValueFactory(new PropertyValueFactory<>("movieTitle"));
         movieCol.setPrefWidth(180);
 
-        TableColumn<Showtime, String> screenCol = new TableColumn<>("Auditorium");
+        TableColumn<Showtime, String> screenCol = new TableColumn<>("🏛 Auditorium");
         screenCol.setCellValueFactory(new PropertyValueFactory<>("screenName"));
-        screenCol.setPrefWidth(150);
+        screenCol.setPrefWidth(140);
 
-        TableColumn<Showtime, String> timeCol = new TableColumn<>("Start Time");
+        TableColumn<Showtime, String> timeCol = new TableColumn<>("🕒 Start Time");
         timeCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFormattedStartTime()));
-        timeCol.setPrefWidth(140);
+        timeCol.setPrefWidth(150);
 
-        TableColumn<Showtime, String> durCol = new TableColumn<>("Duration");
+        TableColumn<Showtime, String> durCol = new TableColumn<>("⏱ Duration");
         durCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDurationMinutes() + " mins"));
         durCol.setPrefWidth(90);
 
-        TableColumn<Showtime, String> regCol = new TableColumn<>("Regular Price");
+        TableColumn<Showtime, String> regCol = new TableColumn<>("💵 Regular Tier");
         regCol.setCellValueFactory(cellData -> new SimpleStringProperty("₹ " + cellData.getValue().getPriceRegular().toPlainString()));
-        regCol.setPrefWidth(100);
+        regCol.setPrefWidth(105);
 
-        TableColumn<Showtime, String> premCol = new TableColumn<>("Premium Price");
+        TableColumn<Showtime, String> premCol = new TableColumn<>("👑 Premium Tier");
         premCol.setCellValueFactory(cellData -> new SimpleStringProperty("₹ " + cellData.getValue().getPricePremium().toPlainString()));
-        premCol.setPrefWidth(110);
+        premCol.setPrefWidth(115);
 
         table.getColumns().addAll(idCol, movieCol, screenCol, timeCol, durCol, regCol, premCol);
         return table;
