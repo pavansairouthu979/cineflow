@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CineFlow — Multiplex Movie Ticket Reservation System
 
 CineFlow is a production-grade desktop application for multiplex movie ticket management built using **Java 21**, **JavaFX 21**, **Maven**, and **MySQL 8.x** via pure **JDBC**.
@@ -151,3 +152,7 @@ mvn javafx:run
 - **Member 3**: Customer Dashboard, Movie Catalog Browser, Search/Filters, Interactive Seat Map.
 - **Member 4**: Seat Holds, Timeline Countdown, Payment Dialog, ACID Booking Transaction, Cancellation.
 - **Member 5**: Admin Booking JOIN Queries, Revenue Reports, JavaFX Charts, CSV Exporter.
+=======
+# cineflow
+CineFlow – A full-stack movie discovery and booking platform built using Java, Spring Boot, and modern web technologies, featuring movie exploration, showtime scheduling, seat selection, and seamless ticket booking.
+>>>>>>> be1e2bd7e1cd3c5f87aa38e26ebef394a924ce52
