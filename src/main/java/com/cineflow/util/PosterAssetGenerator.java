@@ -677,3 +677,4 @@ public class PosterAssetGenerator {
         }
     }
 }
+
